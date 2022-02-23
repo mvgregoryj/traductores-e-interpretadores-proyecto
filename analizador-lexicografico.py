@@ -1,4 +1,4 @@
-from ply.lex import lex
+import ply.lex as lex
 from ply.yacc import yacc
 
 # Tokens
@@ -31,6 +31,9 @@ tokens  = (
     'TkColon'
 )
 
+# Tokens Identificadores
+t_TkId              = r'[a-zA-Z_][a-zA-Z0-9_]*'
+
 # Tokens con regex
 # Tokens palabras reservadas
 t_TkNum             = r'num'
@@ -38,8 +41,6 @@ t_TkBool            = r'bool'
 t_TkFalse           = r'false'
 t_TkTrue            = r'true'
 
-# Tokens Identificadores
-t_TkId              = r'[a-zA-Z_][a-zA-Z0-9_]*'
 
 # Tokens Constantes numéricas
 def t_TkNumber(t):
@@ -92,99 +93,49 @@ def t_ignore_newline(t):
 
 # Error handler for illegal characters
 def t_error(t):
-    print(f'Illegal character {t.value[0]!r}')
+    print(f'ERROR: caracter inválido ({t.value[0]!r}) en la entrada')
     t.lexer.skip(1)
 
 # Build the lexer object
-lexer = lex()
+lexer = lex.lex()
 
-# --- Parser
 
-# Write functions for each grammar rule which is
-# specified in the docstring.
-def p_expression(p):
-    '''
-    expression : term TkPlus term
-               | term TkMinus term
-    '''
-    # p is a sequence that represents rule contents.
-    #
-    # expression : term TkPlus term
-    #   p[0]     : p[1] p[2] p[3]
-    # 
+def lextest (lexer, data):
+    # Entrada para el lexer
+    lexer.input(data)
 
-    if (p[2] == '+'):
-        operator = 'TkPlus'
-    elif (p[2] == '-'):
-        operator = 'TkMinus'
+    for tok in lexer:
 
-    p[0] = p[1], operator, p[3]
+        if (tok.type == 'TkNumber' or tok.type == 'TkId' or tok.type == 'TkBool'):
+            arrayTokens.append(f"{tok.type}({tok.value})")
 
-    # p[0] = ('binop', p[2], p[1], p[3])
+        else:
+            arrayTokens.append(f"{tok.type}")
 
-def p_expression_term(p):
-    '''
-    expression : term
-    '''
-    p[0] = p[1]
+    print(f'OK: lex("{data}") ==> {arrayTokens}')
 
-def p_term(p):
-    '''
-    term : factor TkMult factor
-         | factor TkDiv factor
-    '''
-    if (p[2] == '*'):
-        operator = 'TkMult'
-    elif (p[2] == '/'):
-        operator = 'TkDiv'
-    elif (p[2] == '%'):
-        operator = 'TkMod'
+
+while True:
+    #data = input("< Stókhos >")
+    data = input("<Dacary>")
+
+    arrayTokens = []
+
+    if data == '.':
+        break
+
+    elif data.startswith('.lex'):
         
-    p[0] = p[1], operator, p[3]
+        lextest(lexer, data[4:])
 
-    # p[0] = ('binop', p[2], p[1], p[3])
+    elif data.startswith('.load'):
+        pass
 
-def p_term_factor(p):
-    '''
-    term : factor
-    '''
-    p[0] = p[1]
+    elif data.startswith('.failed'):
+        pass
 
-def p_factor_number(p):
-    '''
-    factor : TkNumber
-    '''
-    p[0] = f'TkNumber({p[1]})'
+    elif data.startswith('.reset'):
+        pass
 
-
-    # p[0] = ('number', p[1])
-
-def p_factor_name(p):
-    '''
-    factor : TkId
-    '''
-    p[0] = f'TkId("{p[1]}")'
-
-# def p_factor_unary(p):
-#     '''
-#     factor : TkPlus factor
-#            | TkMinus factor
-#     '''
-#     p[0] = ('unary', p[1], p[2])
-
-def p_factor_grouped(p):
-    '''
-    factor : TkOpenPar expression TkClosePar
-    '''
-    p[0] = 'TkOpenPar', p[2], 'TkClosePar'
-
-def p_error(p):
-    print(f'Syntax error at {p.value!r}')
-
-# Build the parser
-parser = yacc()
-
-
-# Parse an expression
-ast = parser.parse('2 * 3 + 4 * (5 - x)', lexer)
-print(ast)
+    else:
+        print("ERROR: interpretación no implementada")
