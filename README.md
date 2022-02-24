@@ -19,8 +19,8 @@ $ indica si se encuentra en la terminal de linux o en el git bash de windows.
 
 Luego se procedera a ejecutar el REPL para utilizar los diversos comandos ya descritos en el pdf,
   
-<Dacary> .lex  
-<Dacary> .load  
-<Dacary> .failed  
-<Dacary> .reset
+<*Dacary*> .lex  
+<*Dacary*> .load  
+<*Dacary*> .failed  
+<*Dacary*> .reset
 
