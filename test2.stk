@@ -1,0 +1,8 @@
+.lex bool verdadero := true
+.lex bool falso := false
+.lex verdadero || falso
+.lex ! && || * / + - ;
+.lex double dolares := $$$;
+.lex num pi := 3.141592654
+.lex if 42 = 42: print;
+.lex fact(n) = 1 if n=0 || n=1 else n*fact(n-1);
