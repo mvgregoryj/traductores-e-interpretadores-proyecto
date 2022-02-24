@@ -13,8 +13,7 @@ def ejecutarLexer ():
     # Arreglos a usar
     arrayTokens = []
     arrayErrores = []
-    tripleta = []
-
+    
     # Tokens
     tokens  = (
         # Palabras reservadas:
@@ -119,7 +118,8 @@ def ejecutarLexer ():
     # Build the lexer object
     lexer = lex.lex()
 
-    return lexer,  arrayTokens, arrayErrores, tripleta
+    return lexer, arrayTokens, arrayErrores
+
 
 # Funcion lextest
 def lextest (data):
@@ -131,7 +131,7 @@ def lextest (data):
     elif (data[4] != " "):
         data = data[4:]
 
-    lexer,  arrayTokens, arrayErrores, tripleta = ejecutarLexer()
+    lexer, arrayTokens, arrayErrores = ejecutarLexer()
 
     # Entrada para el lexer
     lexer.input(data)
@@ -155,20 +155,19 @@ def lextest (data):
 
         else:
             arrayTokens.append(f"{tok.type}")
-
-    #print(f'OK: lex("{data}") ==> {arrayTokens}')
+           
     imprimir(data,arrayTokens,arrayErrores)
     
+
 # Funcion imprimir
 def imprimir(data, arrayTokens, arrayErrores):
     
-    numErrores = len(arrayErrores)
-    if (numErrores > 0):
-        #for i in range(0,numErrores):
+    if (len(arrayErrores) > 0):
         print(f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada") 
     
     else:
         print(f'OK: lex("{data}") ==> {arrayTokens}')        
+
 
 # Funcion load
 def load (data):
@@ -182,19 +181,26 @@ def load (data):
         
     file1 = open(data, "r")
     Lines = file1.readlines()
+    nombreArchivo = data
 
     numline = 0 
+    arrayTuplas = []
 
+    lexer, arrayTokens, arrayErrores = ejecutarLexer()
+    
     for line in Lines:
         numline += 1
         data = line.strip()
 
         # Archivo contiene otros nombres de archivos dentro
-        if data.startswith('.load'):
-            load(data)
-        elif data.startswith('.lex'):
-            lextest(line.strip())
+        process(data)
+        
+        if(len(arrayErrores)>0):
+            arrayTuplas.append((nombreArchivo, f"line{numline}", f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"))
+            print(arrayTuplas)
     file1.close()
+
+ 
 
 # Funcion process
 def process (data):
