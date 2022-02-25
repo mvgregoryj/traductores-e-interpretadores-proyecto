@@ -7,7 +7,6 @@ Grupo Dacary:
 
 import ply.lex as lex
 from ply.yacc import yacc
-import os.path as path
 
 # Crea
 def ejecutarLexer ():
