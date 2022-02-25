@@ -2,25 +2,36 @@
 
 Implementación de un simple REPL de Stókhos (del griego στόχος) escrito en python.
 
-Grupo Dacary conformado por:  
--Gregory Muñoz   16-11313  
--Daniela Ramirez 16-10940  
--Giancarlo Dente 15-10395
+## Integrantes Dacary:  
+- Gregory Muñoz   16-11313  
+- Daniela Ramirez 16-10940  
+- Giancarlo Dente 15-10395
 
-Las instrucciones para ejecutar el programa son:
+### Requerimientos:
 
-$ python REPL.py  
+* Python 3.8.10 o superior.
+* Libreria PLY ya viene incluida en este repositorio y no es necesario descargar por otro medio. 
+
+
+### Ejecución
+
+- Dependiendo de su version de python y/o como este configurado en el PATH de Windows, Linux o macOS.
+
+```bash
+$ python REPL.py 
+```
 o  
+```
 $ python3 REPL.py
+```
+     
+### Ejemplos de ejecucion en REPL
 
-dependiendo si se ejecuta en Windows o Linux respectivamente.
+- Luego se procedera a ejecutar el REPL para utilizar los diversos comandos ya descritos en etapa1.pdf
 
-$ indica si se encuentra en la terminal de linux o en el git bash de windows.
-
-Luego se procedera a ejecutar el REPL para utilizar los diversos comandos ya descritos en el pdf,
-  
-<*Dacary*> .lex  
-<*Dacary*> .load  
-<*Dacary*> .failed  
-<*Dacary*> .reset
-
+```bash
+<Dacary> .lex num pi := 3.141592654
+<Dacary> .load full
+<Dacary> .failed
+<Dacary> .reset
+```

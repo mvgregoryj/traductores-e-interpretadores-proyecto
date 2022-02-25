@@ -217,8 +217,8 @@ def failed (arrayTuplas):
         for i in range(0, len(arrayTuplas)-1):
             print(f"\t{arrayTuplas[i]},")
 
-        
         print(f"\t{arrayTuplas[len(arrayTuplas)-1]}")
+        
     print("]")
 
 # Funcion reset
