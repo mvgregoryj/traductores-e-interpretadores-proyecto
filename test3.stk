@@ -1,0 +1,9 @@
+8-8
+.lex num x := 42;
+bool valor := true
+5+4
+.lex double malo := @9;
+
+.lex 42 * 67
+.lex 42 & 67 <>
+ 

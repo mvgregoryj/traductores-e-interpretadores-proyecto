@@ -111,7 +111,6 @@ def ejecutarLexer ():
 
     # Error handler for illegal characters
     def t_error(t):
-        #print(f'ERROR: caracter inválido ({t.value[0]!r}) en la entrada')
         arrayErrores.append(f'{t.value[0]!r}')
         t.lexer.skip(1)
 
@@ -119,7 +118,6 @@ def ejecutarLexer ():
     lexer = lex.lex()
 
     return lexer, arrayTokens, arrayErrores
-
 
 # Funcion lextest
 def lextest (data):
@@ -156,66 +154,76 @@ def lextest (data):
         else:
             arrayTokens.append(f"{tok.type}")
            
-    imprimir(data,arrayTokens,arrayErrores)
+    mensaje = imprimir(data,arrayTokens,arrayErrores)
+    return mensaje
     
-
 # Funcion imprimir
 def imprimir(data, arrayTokens, arrayErrores):
     
     if (len(arrayErrores) > 0):
-        print(f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada") 
+        print(f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada")
+        return f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"
     
     else:
-        print(f'OK: lex("{data}") ==> {arrayTokens}')        
-
+        print(f'OK: lex("{data}") ==> {arrayTokens}') 
+        return f'OK: lex("{data}") ==> {arrayTokens}'
 
 # Funcion load
-def load (data):
-        
+def load (data, arrayTuplas):
+    
     if data == '.load':
         print("ERROR: No se indicó ningun archivo") 
+        return False
+
     elif (data[5]==" "):
         data = data[6:]
     elif (data[5] != " "):
         data = data[5:]
         
+    data = data.strip()
+
     file1 = open(data, "r")
     Lines = file1.readlines()
     nombreArchivo = data
 
     numline = 0 
-    arrayTuplas = []
-
-    lexer, arrayTokens, arrayErrores = ejecutarLexer()
     
     for line in Lines:
         numline += 1
-        data = line.strip()
 
-        # Archivo contiene otros nombres de archivos dentro
-        process(data)
-        
-        if(len(arrayErrores)>0):
-            arrayTuplas.append((nombreArchivo, f"line{numline}", f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"))
-            print(arrayTuplas)
+        # Ignoramos las lineas en blanco o espacios en blanco o tabulaciones
+        if not line.isspace():
+            data = line.strip()
+
+            # Archivo contiene .lex en la linea numline
+            if data.startswith('.lex'):        
+                mensaje = lextest(data)
+
+                if mensaje.startswith('ERROR: '):
+                    arrayTuplas.append((nombreArchivo, numline, mensaje))
+
+            # Archivo contiene otros nombres de archivos dentro
+            elif data.startswith('.load'):
+                load(data, arrayTuplas)
+
+            elif not data.startswith('.lex') or not data.startswith('.load') or data.startswith('.failed') or not data.startswith('.reset') :
+                arrayTuplas.append((nombreArchivo, numline, f"ERROR: interpretación no implementada"))
+                print(f"ERROR: interpretación no implementada")
+
     file1.close()
 
- 
+    return True
 
-# Funcion process
-def process (data):
+def failed (arrayTuplas):
+    print("[")
 
-    if data.startswith('.lex'):        
-        lextest(data)
+    if len(arrayTuplas) > 0:
+        for i in range(0, len(arrayTuplas)-1):
+            print(f"\t{arrayTuplas[i]},")
 
-    elif data.startswith('.load'):
-        load(data)
+        
+        print(f"\t{arrayTuplas[len(arrayTuplas)-1]}")
+    print("]")
 
-    elif data.startswith('.failed'):
-        pass
-
-    elif data.startswith('.reset'):
-        pass
-
-    else:
-        print("ERROR: interpretación no implementada")
+def reset():
+    return []

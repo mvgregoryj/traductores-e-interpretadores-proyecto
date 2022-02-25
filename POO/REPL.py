@@ -22,7 +22,7 @@ class REPL ():
                 break
 
             elif data.startswith('.lex'):        
-                lectura_lex = lextest(data)
+                mensaje = lextest(data)
 
             elif data.startswith('.load'):
                 load(data)

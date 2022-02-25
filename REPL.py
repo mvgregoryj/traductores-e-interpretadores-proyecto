@@ -7,17 +7,25 @@ Grupo Dacary:
 
 import VM
 
-while True:
-    #data = input("< Stókhos >")
-    data = input("<Dacary> ")
+arrayTuplas = []
 
-    # arrayTokens = []
-    # arrayErrores = []
-    # tripleta = []
+while True:
+    data = input("<Dacary> ")
 
     if data == '.':
         break
 
+    elif data.startswith('.lex'):        
+        mensaje = VM.lextest(data)
+
+    elif data.startswith('.load'):
+        cargo = VM.load(data, arrayTuplas)
+
+    elif data.startswith('.failed'):
+        VM.failed(arrayTuplas)
+
+    elif data.startswith('.reset'):
+        arrayTuplas = VM.reset()
+
     else:
-        VM.process(data)
-    
+        print("ERROR: interpretación no implementada")

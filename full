@@ -1,2 +1,4 @@
 .load test1.stk
 .load test2.stk
+
+.load        test3.stk             
