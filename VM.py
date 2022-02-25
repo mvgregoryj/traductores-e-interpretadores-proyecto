@@ -178,7 +178,8 @@ def load (data, arrayTuplas):
         return False
         
     Lines = file1.readlines()
-    nombreArchivo = data            
+    nombreArchivo = data
+                
     numline = 0 
     
     for line in Lines:
