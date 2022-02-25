@@ -7,6 +7,7 @@ Grupo Dacary:
 
 import ply.lex as lex
 from ply.yacc import yacc
+import os.path as path
 
 # Crea
 def ejecutarLexer ():
@@ -44,7 +45,6 @@ def ejecutarLexer ():
         'TkColon'
     )
 
-
     # Tokens con regex
     # Tokens palabras reservadas
     reservados = {
@@ -53,7 +53,6 @@ def ejecutarLexer ():
         'false' : 'TkFalse',
         'true' : 'TkTrue'
     }
-
 
     # Tokens Identificadores
     def t_TkId(t):
@@ -171,21 +170,16 @@ def imprimir(data, arrayTokens, arrayErrores):
 # Funcion load
 def load (data, arrayTuplas):
     
-    if data == '.load':
-        print("ERROR: No se indicó ningun archivo") 
-        return False
-
-    elif (data[5]==" "):
-        data = data[6:]
-    elif (data[5] != " "):
-        data = data[5:]
+    try: 
+        data = data[5:].strip()
+        file1 = open(data, "r")
         
-    data = data.strip()
-
-    file1 = open(data, "r")
+    except:
+        print("ERROR: archivo no encontrado.") 
+        return False
+        
     Lines = file1.readlines()
-    nombreArchivo = data
-
+    nombreArchivo = data            
     numline = 0 
     
     for line in Lines:
@@ -199,6 +193,7 @@ def load (data, arrayTuplas):
             if data.startswith('.lex'):        
                 mensaje = lextest(data)
 
+                # Si la respuesta da ERROR se guarda el nombre del archivo, la linea y el mensaje en una lista de tuplas
                 if mensaje.startswith('ERROR: '):
                     arrayTuplas.append((nombreArchivo, numline, mensaje))
 
@@ -206,6 +201,7 @@ def load (data, arrayTuplas):
             elif data.startswith('.load'):
                 load(data, arrayTuplas)
 
+            # Si no se ingresa alguno de los comandos especificados se devuelve ERROR
             elif not data.startswith('.lex') or not data.startswith('.load') or data.startswith('.failed') or not data.startswith('.reset') :
                 arrayTuplas.append((nombreArchivo, numline, f"ERROR: interpretación no implementada"))
                 print(f"ERROR: interpretación no implementada")
@@ -214,6 +210,7 @@ def load (data, arrayTuplas):
 
     return True
 
+# Funcion failed
 def failed (arrayTuplas):
     print("[")
 
@@ -225,5 +222,6 @@ def failed (arrayTuplas):
         print(f"\t{arrayTuplas[len(arrayTuplas)-1]}")
     print("]")
 
+# Funcion reset
 def reset():
     return []
