@@ -27,7 +27,7 @@ $ python3 REPL.py
      
 ### Ejemplos de ejecucion en REPL
 
-- Luego se procedera a ejecutar el REPL para utilizar los diversos comandos de ya descritos en etapa1.pdf
+- Luego se procedera a ejecutar el REPL para utilizar los diversos comandos ya descritos en etapa1.pdf
 
 ```bash
 <Dacary> .lex num pi := 3.141592654
