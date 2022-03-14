@@ -9,6 +9,28 @@ import ply.lex as lex
 from ply.yacc import yacc
 import os.path as path
 
+# Process
+def process (input: str, arrayTuplas: list) -> str:
+
+    if input.startswith('.lex'):        
+        return lextest(input)
+
+    elif input.startswith('.load'):
+        return load(input, arrayTuplas)
+
+    elif input.startswith('.failed'):
+        return failed(arrayTuplas)
+
+    # elif input.startswith('.reset'):
+    #     arrayTuplas = reset()
+
+    elif input == "":
+        pass
+
+    else:
+        print("ERROR: interpretación no implementada")
+
+
 # Crea
 def ejecutarLexer ():
     # Arreglos a usar
@@ -30,6 +52,7 @@ def ejecutarLexer ():
         'TkOpenPar', 'TkClosePar',
         'TkOpenBracket', 'TkCloseBracket',
         'TkOpenBrace', 'TkCloseBrace',
+        'TkSingleQuote',
         'TkNot',
         'TkPower',
         'TkMult', 'TkDiv', 'TkMod',
@@ -74,6 +97,7 @@ def ejecutarLexer ():
     t_TkCloseBracket    = r'\]'
     t_TkOpenBrace       = r'\{'
     t_TkCloseBrace      = r'\}'
+    t_TkSingleQuote     = r'\''
     t_TkNot             = r'\!'
     t_TkPower           = r'\^'
     t_TkMult            = r'\*'
@@ -119,11 +143,11 @@ def ejecutarLexer ():
     return lexer, arrayTokens, arrayErrores
 
 # Funcion lextest
-def lextest (data):
+def lextest (data: str) -> str:
 
     if data == '.lex':
-        data=""
-    elif (data[4]==" "):
+        data = ""
+    elif (data[4] == " "):
         data = data[5:]
     elif (data[4] != " "):
         data = data[4:]
@@ -135,17 +159,6 @@ def lextest (data):
 
     for tok in lexer:
 
-        # print(tok)
-        # print(type(tok))
-        # print(tok.type)
-        # print(type(tok.type))
-        # print(tok.value)
-        # print(type(tok.value))
-        # print(tok.lineno)
-        # print(type(tok.lineno))
-        # print(tok.lexpos)
-        # print(type(tok.lexpos))
-
         if (tok.type == 'TkNumber' or tok.type == 'TkId'):
             arrayTokens.append(f"{tok.type}({tok.value})")
             # arrayTokens.append(tok.type + "(" + tok.value + ")" if type(tok.value)==str else tok.type + "(" + str(tok.value) +")")
@@ -153,30 +166,30 @@ def lextest (data):
         else:
             arrayTokens.append(f"{tok.type}")
            
-    mensaje = imprimir(data,arrayTokens,arrayErrores)
-    return mensaje
+    return mensajeLexer(data,arrayTokens,arrayErrores)
     
-# Funcion imprimir
-def imprimir(data, arrayTokens, arrayErrores):
+# Funcion mensajeLexer
+def mensajeLexer(data: str, arrayTokens: list, arrayErrores: list) -> str:
     
     if (len(arrayErrores) > 0):
-        print(f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada")
+        # print(f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada")
         return f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"
     
     else:
-        print(f'OK: lex("{data}") ==> {arrayTokens}') 
+        # print(f'OK: lex("{data}") ==> {arrayTokens}') 
         return f'OK: lex("{data}") ==> {arrayTokens}'
 
 # Funcion load
-def load (data, arrayTuplas):
+def load (data: str, arrayTuplas: list) -> str:
+
+    mensajeLoad = ""
     
     try: 
         data = data[5:].strip()
         file1 = open(data, "r")
         
     except:
-        print("ERROR: archivo no encontrado.") 
-        return False
+        return f"ERROR: archivo no encontrado." 
         
     Lines = file1.readlines()
     nombreArchivo = data            
@@ -190,8 +203,9 @@ def load (data, arrayTuplas):
             data = line.strip()
 
             # Archivo contiene .lex en la linea numline
-            if data.startswith('.lex'):        
-                mensaje = lextest(data)
+            if data.startswith('.lex'):
+                mensaje = lextest(data)        
+                mensajeLoad = mensajeLoad + f"{mensaje}\n"
 
                 # Si la respuesta da ERROR se guarda el nombre del archivo, la linea y el mensaje en una lista de tuplas
                 if mensaje.startswith('ERROR: '):
@@ -199,28 +213,33 @@ def load (data, arrayTuplas):
 
             # Archivo contiene otros nombres de archivos dentro
             elif data.startswith('.load'):
-                load(data, arrayTuplas)
+                mensaje = load(data, arrayTuplas)       
+                mensajeLoad = mensajeLoad + f"{mensaje}\n"
 
             # Si no se ingresa alguno de los comandos especificados se devuelve ERROR
             elif not data.startswith('.lex') or not data.startswith('.load') or data.startswith('.failed') or not data.startswith('.reset') :
                 arrayTuplas.append((nombreArchivo, numline, f"ERROR: interpretación no implementada"))
-                print(f"ERROR: interpretación no implementada")
+                mensajeLoad = mensajeLoad + f"ERROR: interpretación no implementada\n"
 
     file1.close()
 
-    return True
+    return mensajeLoad[:len(mensajeLoad)-1]
+    #return mensajeLoad
 
 # Funcion failed
-def failed (arrayTuplas):
-    print("[")
+def failed (arrayTuplas: list) -> str:
+    msjFailed = ""
+    msjFailed = msjFailed + f"[\n"
 
     if len(arrayTuplas) > 0:
         for i in range(0, len(arrayTuplas)-1):
-            print(f"\t{arrayTuplas[i]},")
+            msjFailed = msjFailed + f"\t{arrayTuplas[i]},\n"
 
-        print(f"\t{arrayTuplas[len(arrayTuplas)-1]}")
+        msjFailed = msjFailed + f"\t{arrayTuplas[len(arrayTuplas)-1]}\n"
         
-    print("]")
+    msjFailed = msjFailed + f"]"
+
+    return msjFailed
 
 # Funcion reset
 def reset():

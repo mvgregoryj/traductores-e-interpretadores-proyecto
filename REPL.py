@@ -7,25 +7,20 @@ Grupo Dacary:
 
 import VM
 
+# Variables Globales
 arrayTuplas = []
 
+
 while True:
-    data = input("<Dacary> ")
+    data = input("<Dacary> ").strip()
 
     if data == '.':
         break
-
-    elif data.startswith('.lex'):        
-        mensaje = VM.lextest(data)
-
-    elif data.startswith('.load'):
-        cargo = VM.load(data, arrayTuplas)
-
-    elif data.startswith('.failed'):
-        VM.failed(arrayTuplas)
 
     elif data.startswith('.reset'):
         arrayTuplas = VM.reset()
 
     else:
-        print("ERROR: interpretación no implementada")
+        mensajeVM = VM.process(data, arrayTuplas)
+        
+        print(mensajeVM)
