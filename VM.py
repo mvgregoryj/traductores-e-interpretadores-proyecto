@@ -7,7 +7,6 @@ Grupo Dacary:
 
 import ply.lex as lex
 from ply.yacc import yacc
-import os.path as path
 
 # Process
 def process (input: str, arrayTuplas: list) -> str:
@@ -192,7 +191,8 @@ def load (data: str, arrayTuplas: list) -> str:
         return f"ERROR: archivo no encontrado." 
         
     Lines = file1.readlines()
-    nombreArchivo = data            
+    nombreArchivo = data
+                
     numline = 0 
     
     for line in Lines:
