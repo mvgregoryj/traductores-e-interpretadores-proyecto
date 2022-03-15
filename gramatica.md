@@ -2,6 +2,7 @@
 
 ##  Primera gramática: sintaxis de Stókhos
 
+```bash
 <entrada> -> <instrucción> | <expresión>
 
 <instrucción> -> <definición> | <asignación>
@@ -46,3 +47,4 @@
         -> <expresión> && <expresión>
         -> <expresión> || <expresión>   
         -> <expresión> , <expresión>   
+```
