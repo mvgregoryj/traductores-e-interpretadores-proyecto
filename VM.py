@@ -24,10 +24,10 @@ def process (input: str, arrayTuplas: list) -> str:
     #     arrayTuplas = reset()
 
     elif input == "":
-        pass
+        return ""
 
     else:
-        print("ERROR: interpretación no implementada")
+        return f"ERROR: interpretación no implementada"
 
 
 # Crea

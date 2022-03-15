@@ -23,4 +23,5 @@ while True:
     else:
         mensajeVM = VM.process(data, arrayTuplas)
         
-        print(mensajeVM)
+        if len(mensajeVM) > 1:
+            print(mensajeVM)
