@@ -3,48 +3,127 @@
 ##  Primera gramática: sintaxis de Stókhos
 
 ```bash
-<entrada> -> <instrucción> | <expresión>
+<entrada> -> <instruccion> | <expresion>
 
-<instrucción> -> <definición> | <asignación>
+<instruccion> -> <definicion> | <asignacion>
 
-<definición> -> <tipo> <identificador> := <expresión> ;
-<asignación> -> <identificador> := <expresión> ;
+<definicion> -> <tipo> <identificador> := <expresion> ;
+<asignacion> -> <identificador> := <expresion> ;
 
 <tipo>
-        -> <tipoBásico>
-        -> <tipoNoBásico>
+        -> <tipoBasico>
+        -> <tipoNoBasico>
 
-<tipoBásico>
+<tipoBasico>
         -> num
         -> bool
 
-<tipoNoBásico>
-        -> [<tipoBásico>]
+<tipoNoBasico> -> [<tipoBasico>]
 
-<expresión>
+<expresion>
         -> <identificador>
         -> <número>
         -> <booleano>
-        -> (<expresión>)
-        -> [<expresión>]
+        -> (<expresion>)
+        -> [<expresion>]
         -> <identificador>[<number>]            <!-- Preguntar -->
-        -> '<expresión>'
-        -> <expresión>^<expresión>
-        -> +<expresión>
-        -> -<expresión>
-        -> !<expresión>
-        -> <expresión> * <expresión>
-        -> <expresión> / <expresión>
-        -> <expresión> % <expresión>
-        -> <expresión> + <expresión>
-        -> <expresión> - <expresión>
-        -> <expresión> < <expresión>
-        -> <expresión> <= <expresión>
-        -> <expresión> >= <expresión>
-        -> <expresión> > <expresión>
-        -> <expresión> = <expresión>
-        -> <expresión> <> <expresión>
-        -> <expresión> && <expresión>
-        -> <expresión> || <expresión>   
-        -> <expresión> , <expresión>   
+        -> '<expresion>'
+        -> <expresion>^<expresion>
+        -> +<expresion>
+        -> -<expresion>
+        -> !<expresion>
+        -> <expresion> * <expresion>
+        -> <expresion> / <expresion>
+        -> <expresion> % <expresion>
+        -> <expresion> + <expresion>
+        -> <expresion> - <expresion>
+        -> <expresion> < <expresion>
+        -> <expresion> <= <expresion>
+        -> <expresion> >= <expresion>
+        -> <expresion> > <expresion>
+        -> <expresion> = <expresion>
+        -> <expresion> <> <expresion>
+        -> <expresion> && <expresion>
+        -> <expresion> || <expresion>   
+        -> <expresion> , <expresion>   
+```
+
+##  Segunda gramática: Utilizada para la construcción del reconocedor.
+
+```bash
+<entrada> -> 
+          -> <instruccion> 
+          -> <expresion>
+
+<instruccion> -> <definicion> | <asignacion>
+
+<definicion> -> <tipo> <identificador> := <expresion> ;
+<asignacion> -> <identificador> := <expresion> ;
+
+<tipo>
+        -> <tipoBasico>
+        -> <tipoNoBasico>
+
+<tipoBasico>
+        -> num
+        -> bool
+
+<tipoNoBasico>
+        -> [<tipoBasico>]
+
+<expresion>
+        -> <expresionAcotada>
+        -> <expresionNormal>
+
+<expresionAcotada>
+        -> '<expresionNormal>'
+
+<expresionNormal>
+        -> <expresionNumerica>
+        -> <expresionLogica>
+        -> <expresionArreglo>
+
+<expresionNumerica>
+        -> <numero>
+        -> <identificador>
+        -> (<expresionNumerica>)
+        -> {<expresionNumerica>}
+        -> <expresionNumerica>^<expresionNumerica>
+        -> +<expresionNumerica>
+        -> -<expresionNumerica>
+        -> <expresionNumerica> * <expresionNumerica>
+        -> <expresionNumerica> / <expresionNumerica>
+        -> <expresionNumerica> % <expresionNumerica>
+        -> <expresionNumerica> + <expresionNumerica>
+        -> <expresionNumerica> - <expresionNumerica>
+
+<expresionLogica>  
+        -> <booleano>
+        -> <identificador>
+        -> (<expresionLogica>)
+        -> {<expresionLogica>}
+        -> !<expresionLogica>
+        -> <expresionNumerica> < <expresionNumerica>
+        -> <expresionNumerica> <= <expresionNumerica>
+        -> <expresionNumerica> >= <expresionNumerica>
+        -> <expresionNumerica> > <expresionNumerica>
+        -> <expresionNumerica> = <expresionNumerica>
+        -> <expresionNumerica> <> <expresionNumerica>
+        -> <expresionLogica> && <expresionLogica>
+        -> <expresionLogica> || <expresionLogica>   
+
+<booleano>
+        -> <true>
+        -> <false>
+
+<expresionArreglo>
+        -> [<expresionArregloLLamada>]
+        -> <expresionArregloInstruccion>
+
+<expresionArregloLLamada>
+        -> <expresionNormal> , <expresionArregloLLamada>
+        -> <expresionNormal>  
+
+<expresionArregloInstruccion>
+        -> <identificador>[<expresionNumerica>]            <!-- Preguntar -->
 ```

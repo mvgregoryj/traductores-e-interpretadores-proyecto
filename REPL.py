@@ -20,6 +20,11 @@ while True:
     elif data.startswith('.reset'):
         arrayTuplas = VM.reset()
 
+    elif data.startswith('.ast'):
+        mensajeParser = VM.testParser(data)
+
+        print(mensajeParser)
+
     else:
         mensajeVM = VM.process(data, arrayTuplas)
         
