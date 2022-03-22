@@ -125,5 +125,5 @@
         -> <expresionNormal>  
 
 <expresionArregloInstruccion>
-        -> <identificador>[<expresionNumerica>]            <!-- Preguntar -->
+        -> <identificador>[<expresionNumerica>]
 ```

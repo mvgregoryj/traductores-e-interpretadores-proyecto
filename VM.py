@@ -283,7 +283,7 @@ class BinOp(Expr):
     def __repr__(self):
         #return "(%r %r %r)" % (self.left, self.op, self.right)
         if self.op == ',':
-            return f"{self.left} {self.op} {self.right}"
+            return f"{self.left}{self.op} {self.right}"
         else:
             return f"({self.left} {self.op} {self.right})"
 
@@ -323,7 +323,7 @@ class Grouped(Expr):
 
     def __repr__(self):
         #return "%r%r%r" % (self.left, self.expression, self.right)
-        if self.type == "Par" and len(self.expression) == 1:
+        if self.type == "Par" and self.expression != BinOp:
             return f"{self.expression}"
         else:
             return f"{self.left}{self.expression}{self.right}"
