@@ -216,20 +216,31 @@ def load (data: str, arrayTuplas: list) -> str:
                 mensaje = load(data, arrayTuplas)       
                 mensajeLoad = mensajeLoad + f"{mensaje}\n"
 
+            # Archivo contiene .failed en la linea numline
+            elif data.startswith('.failed'):
+                mensajeLoad = mensajeLoad + f"{failed(arrayTuplas)}\n"
+
+            # Archivo contiene .reset en la linea numline
+            elif data.startswith('.reset'):
+                reset(arrayTuplas)
+
+            # Archivo contiene .ast en la linea numline
+            elif data.startswith('.ast'):
+                mensaje = testParser(data)
+                mensajeLoad = mensajeLoad + f"{mensaje}\n"
+            
             # Si no se ingresa alguno de los comandos especificados se devuelve ERROR
-            elif not data.startswith('.lex') or not data.startswith('.load') or data.startswith('.failed') or not data.startswith('.reset') :
+            elif not data.startswith('.lex') or not data.startswith('.load') or not data.startswith('.failed') or not data.startswith('.reset') or not data.startswith('.ast'):
                 arrayTuplas.append((nombreArchivo, numline, f"ERROR: interpretación no implementada"))
                 mensajeLoad = mensajeLoad + f"ERROR: interpretación no implementada\n"
 
     file1.close()
 
-    return mensajeLoad[:len(mensajeLoad)-1]
-    #return mensajeLoad
-
+    return mensajeLoad[:len(mensajeLoad)-1]    # return mensajeLoad[:len(mensajeLoad)-1] para no incluir ultima linea en blanco
+ 
 # Funcion failed
 def failed (arrayTuplas: list) -> str:
-    msjFailed = ""
-    msjFailed = msjFailed + f"[\n"
+    msjFailed = f"[\n"
 
     if len(arrayTuplas) > 0:
         for i in range(0, len(arrayTuplas)-1):
@@ -242,8 +253,9 @@ def failed (arrayTuplas: list) -> str:
     return msjFailed
 
 # Funcion reset
-def reset():
-    return []
+def reset(arrayTuplas):
+    for i in range(0, len(arrayTuplas)):
+        arrayTuplas.pop()
 
 class Expr: pass
  
@@ -284,6 +296,9 @@ class BinOp(Expr):
         #return "(%r %r %r)" % (self.left, self.op, self.right)
         if self.op == ',':
             return f"{self.left}{self.op} {self.right}"
+
+        # elif self.op == '*':
+        #     return f"Mult({self.left},{self.right})"
         else:
             return f"({self.left} {self.op} {self.right})"
 
@@ -294,7 +309,7 @@ class Number(Expr):
 
     def __repr__(self):
         return f"{self.value}"
-        #return "%r" % (self.value)
+        #return f"Number({self.value})"
 
 class Identifier(Expr):
     def __init__(self,value):
@@ -303,7 +318,7 @@ class Identifier(Expr):
 
     def __repr__(self):
         return f"{self.value}"
-        #return "%r" % (self.value)
+        #return f"Id({self.value})"
 
 class UnaOp(Expr):
     def __init__(self,op,right):
@@ -365,7 +380,7 @@ def parse(input: str):
         ('left', 'TkPower')
     )
     # dictionary of names
-    identificadores = { }
+    identificadores ={}
 
     def p_entrada(p):
         '''

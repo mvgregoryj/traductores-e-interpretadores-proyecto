@@ -1,0 +1,14 @@
+.lex 6 * 7
+.lex num x := 42;
+.lex
+.lex ! && || * / + - ;
+.lex double malo := @9;
+.lex 42 * 67
+.lex 42 & 67 <>
+.lex 42 67 * &&|| fibo (20) num
+.ast 5*5
+.ast num x := 5;
+.ast y := 6;
+.ast 5*5/(5-(1+1))
+.failed
+.reset

@@ -18,7 +18,7 @@ while True:
         break
 
     elif data.startswith('.reset'):
-        arrayTuplas = VM.reset()
+        VM.reset(arrayTuplas)
 
     elif data.startswith('.ast'):
         mensajeParser = VM.testParser(data)
