@@ -34,5 +34,6 @@ if __name__ == '__main__':
         else:
             mensajeVM = VM.process(data, arrayTuplas)
             
-            if len(mensajeVM) > 1:
-                print(mensajeVM)
+            print(mensajeVM)
+            # if len(mensajeVM) > 1:
+            #     print(mensajeVM)

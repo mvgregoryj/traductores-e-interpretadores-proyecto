@@ -122,6 +122,8 @@
         -> <expresionNumerica> > <expresionNumerica>
         -> <expresionNumerica> = <expresionNumerica>
         -> <expresionNumerica> <> <expresionNumerica>
+        -> <expresionLogica> = <expresionLogica>
+        -> <expresionLogica> <> <expresionLogica>
         -> <expresionLogica> && <expresionLogica>
         -> <expresionLogica> || <expresionLogica>   
 

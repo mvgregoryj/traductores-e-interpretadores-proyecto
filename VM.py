@@ -9,9 +9,12 @@ Grupo Dacary:
 from ply.lex import lex
 from ply.yacc import yacc
 from REPL import identificadores
+from Objetos import *
 import random
 import math
 import time
+
+ts_global = TablaDeSimbolos()
 
 # Process
 def process (input: str, arrayTuplas: list) -> str:
@@ -19,7 +22,6 @@ def process (input: str, arrayTuplas: list) -> str:
     if input.startswith('.lex'):        
         data, arrayTokens, arrayErrores = lexTest(input)
         return mensajeLexer(data, arrayTokens, arrayErrores)
-
 
     elif input.startswith('.load'):
         return load(input, arrayTuplas)
@@ -31,17 +33,19 @@ def process (input: str, arrayTuplas: list) -> str:
         return ""
 
     else:
-        # Eliminamos los espacios antes y despues de la expresión
-        input = input.strip().split()
-        
-        if input[0] == 'int' or input[0] == 'bool' or input[0] == '[int]' or input[0] == '[bool]':
+        return procesar_instruccion(input, ts_global)
 
-            # Almacenamos en el diccionario identificadores el nombre de la variable, su tipo y su valor
-            identificadores[input[1]] = (input[0], input[3])
-
-            print(identificadores)
+        # # Eliminamos los espacios antes y despues de la expresión
+        # input = input.strip().split()
         
-        return identificadores
+        # if input[0] == 'int' or input[0] == 'bool' or input[0] == '[int]' or input[0] == '[bool]':
+
+        #     # Almacenamos en el diccionario identificadores el nombre de la variable, su tipo y su valor
+        #     identificadores[input[1]] = (input[0], input[3])
+
+        #     print(identificadores)
+        
+        # return identificadores
 
 
         #return f"ERROR: interpretación no implementada"
@@ -272,108 +276,6 @@ def reset(arrayTuplas):
     for i in range(0, len(arrayTuplas)):
         arrayTuplas.pop()
 
-class Expr: pass
- 
-class Definition(Expr):
-    def __init__(self, type, id, expression):
-        self.type = type
-        self.id = id
-        self.expression = expression
-
-    def definir(self):
-        global identificadores
-
-        identificadores[f"{self.id}"] = (self.type, self.expression)
-    
-    def __repr__(self):
-        return f"Def({self.type}, {self.id}, {self.expression})"
-
-class Assignment(Expr):
-    def __init__(self, id, expression):
-        self.id = id
-        self.expression = expression
-
-    def asignar(self):
-        global identificadores
-        
-        if f"{self.id}" in identificadores:
-            identificadores[f"{self.id}"] = (identificadores[f"{self.id}"][0], self.expression)
-        else:
-            print("ERROR: identificador no definido")
-            # identificadores[f"{self.id}"] = (f"{type(self.expression)}", self.expression)
-
-    def __repr__(self):
-        return f"Assign({self.id}, {self.expression})"
-
-class BasicType(Expr):
-    def __init__(self, type):
-        self.type = type
-
-    def __repr__(self):
-        return f"{self.type}"
-
-class BinOp(Expr):
-    def __init__(self,left,op,right):
-        self.left = left
-        self.op = op
-        self.right = right
-
-    def __repr__(self):
-        if self.op == ',':
-            return f"{self.left}{self.op} {self.right}"
-
-        # elif self.op == '*':
-        #     return f"Mult({self.left},{self.right})"
-        else:
-            return f"({self.left} {self.op} {self.right})"
-
-class Number(Expr):
-    def __init__(self,value):
-        self.type = "number"
-        self.value = value
-
-    def __repr__(self):
-        return f"{self.value}"
-        #return f"Number({self.value})"
-
-class Identifier(Expr):
-    def __init__(self,value):
-        self.type = "id"
-        self.value = value
-
-    def __repr__(self):
-        return f"{self.value}"
-        #return f"Id({self.value})"
-
-class UnaOp(Expr):
-    def __init__(self,op,right):
-        self.op = op
-        self.right = right
-
-    def __repr__(self):
-        return f"{self.op}{self.right}"
-
-class Grouped(Expr):
-    def __init__(self,type,left,expression,right):
-        self.type = type
-        self.left = left
-        self.expression = expression
-        self.right = right
-
-    def __repr__(self):
-        if self.type == "Par" and self.expression != BinOp:
-            return f"{self.expression}"
-        else:
-            return f"{self.left}{self.expression}{self.right}"
-
-class ArrayInstruction(Expr):
-    def __init__(self,id,expression):
-        self.id = id
-        self.expression = expression
-
-    def __repr__(self):
-        return f"{self.id}[{self.expression}]"
-       
 
 # Funcion parse:
 # Parse recibe la secuencia de caracteres correspondiente a la entrada 
@@ -425,14 +327,15 @@ def parse(input: str):
         definicion : tipo identificador TkAssign expresion TkSemicolon
         '''
         p[0] = Definition(p[1], p[2], p[4])
-        Definition(p[1], p[2], p[4]).definir()
+
+        # Definition(p[1], p[2], p[4]).definir()
 
     def p_asignacion(p):
         '''
         asignacion : identificador TkAssign expresion TkSemicolon
         '''
         p[0] = Assignment(p[1], p[3])
-        Assignment(p[1], p[3]).asignar()
+        # Assignment(p[1], p[3]).asignar()
 
     def p_tipo(p):
         '''
@@ -529,6 +432,8 @@ def parse(input: str):
                           | expresionNumerica TkGT expresionNumerica
                           | expresionNumerica TkEQ expresionNumerica
                           | expresionNumerica TkNE expresionNumerica
+                          | expresionLogica TkEQ expresionLogica
+                          | expresionLogica TkNE expresionLogica
                           | expresionLogica TkAnd expresionLogica
                           | expresionLogica TkOr expresionLogica   
         '''
@@ -539,14 +444,19 @@ def parse(input: str):
             p[0] = UnaOp(p[1], p[2])
 
         elif len(p) == 4:
-            p[0] = BinOp(p[1], p[2], p[3])
+            if (p[1]=='(' and p[3]==')'):
+                p[0] = Grouped("Par", p[1], p[2], p[3])
+            elif  (p[1]=='{' and p[3]=='}'):
+                p[0] = Grouped("Brace", p[1], p[2], p[3])
+            else:
+                p[0] = BinOp(p[1], p[2], p[3])
     
     def p_booleano(p):
         '''
         booleano : TkTrue
                    | TkFalse
         '''
-        p[0] = p[1]
+        p[0] = Boolean(p[1])
     
     def p_expresionArreglo(p):
         '''
@@ -608,6 +518,152 @@ def testParser(input: str) -> str:
     astString = ast2str(ast)
 
     return astString
+
+def procesarDefinicion(instruccion: Definition, ts: TablaDeSimbolos) -> str:
+    if isinstance(instruccion.expression, BinOp):
+        resultado = procesarOperacionBinaria(instruccion.expression, ts)
+        
+        # Se actualiza el simbolo en la tabla de simbolos
+        ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, resultado))
+
+        return f"ACK: {instruccion.type} {instruccion.id} := {resultado};"
+
+    elif isinstance(instruccion.expression, UnaOp):
+        pass
+    elif isinstance(instruccion.expression, Grouped):
+        pass
+    elif isinstance(instruccion.expression, Identifier):
+        pass
+    elif isinstance(instruccion.expression, Number):     
+        # Se agrega el simbolo a la tabla de simbolos
+        ts.agregar_simbolo(instruccion)
+
+        return f"ACK: {instruccion.type} {instruccion.id} := {instruccion.expression};"
+
+def procesarAsignacion(instruccion: Assignment, ts: TablaDeSimbolos) -> str:
+    # Se actualiza el simbolo en la tabla de simbolos
+    ts.actualizar_simbolo(instruccion)
+
+    return f"ACK: {instruccion.id} := {instruccion.expression};"
+
+def procesarOperacionBinaria(instruccion, ts) :
+    if isinstance(instruccion, BinOp) :
+        expLeft = procesarOperacionBinaria(instruccion.left, ts)
+        expRight = procesarOperacionBinaria(instruccion.right, ts)
+        if instruccion.op == "^" : return expLeft ** expRight
+        if instruccion.op == "*" : return expLeft * expRight
+        if instruccion.op == "/" : return expLeft // expRight
+        if instruccion.op == "+" : return expLeft + expRight
+        if instruccion.op == "-" : return expLeft - expRight
+        if instruccion.op == "<" : return f"{expLeft < expRight}".lower()
+        if instruccion.op == "<=" : return f"{expLeft <= expRight}".lower()
+        if instruccion.op == ">=" : return f"{expLeft >= expRight}".lower()
+        if instruccion.op == ">" : return f"{expLeft > expRight}".lower()
+        if instruccion.op == "=" : return f"{expLeft == expRight}".lower()
+        if instruccion.op == "<>" : return f"{expLeft != expRight}".lower()
+        if instruccion.op == "&&" : return f"{expLeft & expRight}".lower()
+        if instruccion.op == "||" : return f"{expLeft | expRight}".lower()
+    elif isinstance(instruccion, Number):
+        return instruccion.value
+    elif isinstance(instruccion, Boolean):
+        return instruccion.value
+    elif isinstance(instruccion, Identifier):
+        return ts.valor_simbolo(instruccion)
+    elif isinstance(instruccion, UnaOp):
+        return procesarOperacionUnaria(instruccion, ts)
+    elif isinstance(instruccion, Grouped):
+        return procesarAgrupacion(instruccion.expression, ts)
+
+def procesarNumero(instruccion: Number, ts: TablaDeSimbolos) -> str:
+    return instruccion.value
+
+def procesarIdentificador(instruccion: Identifier, ts: TablaDeSimbolos) -> str:
+    if ts.existe_simbolo_en_ts(instruccion):
+        valorEncontrado = ts.obtener_simbolo(instruccion)
+        return f"OK: {instruccion.value} ==> {valorEncontrado.expression};"
+    else:
+        return f"ERROR: identificador {instruccion.value} no definido"
+
+def procesarOperacionUnaria(instruccion, ts: TablaDeSimbolos) -> str:
+    if isinstance(instruccion, UnaOp):
+        exp = procesarOperacionUnaria(instruccion.right, ts)
+        if instruccion.op == "+" : return exp
+        if instruccion.op == "-" : return -exp
+        if instruccion.op == "!" : return not exp
+
+    elif isinstance(instruccion, Number):
+        return  instruccion.value
+            
+    elif isinstance(instruccion, Identifier):
+        return ts.valor_simbolo(instruccion)
+
+    elif isinstance(instruccion, Boolean):
+        return instruccion.value
+
+def procesarAgrupacion(instruccion: Grouped, ts: TablaDeSimbolos) -> str:
+
+    if instruccion.type == "Par":
+        if isinstance(instruccion.expression, Grouped):          
+            return procesarAgrupacion(instruccion.expression, ts)
+        elif isinstance(instruccion.expression, BinOp):
+            return procesarOperacionBinaria(instruccion.expression, ts)
+        elif isinstance(instruccion.expression, Number):
+            return instruccion.expression.value
+        elif isinstance(instruccion.expression, Boolean):
+            return f"{instruccion.expression.value}".lower()
+        elif isinstance(instruccion.expression, Identifier):
+            return ts.valor_simbolo(instruccion.expression)
+        elif isinstance(instruccion.expression, UnaOp):
+            return procesarOperacionUnaria(instruccion.expression, ts)
+        
+    elif instruccion.type == "SingleQuote":
+        if isinstance(instruccion.expression, Grouped):
+            return instruccion.expression
+        elif isinstance(instruccion.expression, BinOp):
+            return f"{instruccion.expression.left} {instruccion.expression.op} {instruccion.expression.right}"
+        elif isinstance(instruccion.expression, Number):
+            return instruccion.expression.value
+        elif isinstance(instruccion.expression, Boolean):
+            return f"{instruccion.expression.value}".lower()
+        elif isinstance(instruccion.expression, Identifier):
+            return instruccion.expression.value
+        elif isinstance(instruccion.expression, UnaOp):
+            return f"{instruccion.expression.op}{instruccion.expression.right}"
+
+
+
+            # elif instruccion.type == "Bracket": return f"{instruccion.left}{instruccion.expression}{instruccion.right}"
+            # elif instruccion.type == "SingleQuote": return f"{instruccion.expression}"
+            # elif instruccion.type == "Brace": return f"{instruccion.left}{instruccion.expression}{instruccion.right}"
+
+def procesarArregloInstruccion(instruccion: ArrayInstruction, ts: TablaDeSimbolos) -> str:
+    return instruccion
+
+def procesarBoolean(instruccion: Boolean, ts: TablaDeSimbolos) -> str:
+    return instruccion.value
+
+
+# Funcion procesar_instruccion:
+# Recibe una instruccion y la procesa
+def procesar_instruccion(input: str, ts: TablaDeSimbolos) -> str:
+
+    # Llamamos a parser con el input ingresado por el usuario
+    instruccion = parse(input)
+
+    # print(type(instruccion))
+    # print(type(instruccion.expression))
+
+    # Si la instruccion es una declaracion de variable
+    if isinstance(instruccion, Definition): return procesarDefinicion(instruccion, ts)
+    elif isinstance(instruccion, Assignment): return procesarAsignacion(instruccion, ts)
+    elif isinstance(instruccion, BinOp): return procesarOperacionBinaria(instruccion, ts)
+    elif isinstance(instruccion, Number): return procesarNumero(instruccion, ts)
+    elif isinstance(instruccion, Identifier): return procesarIdentificador(instruccion, ts)
+    elif isinstance(instruccion, UnaOp): return procesarOperacionUnaria(instruccion, ts)
+    elif isinstance(instruccion, Grouped): return procesarAgrupacion(instruccion, ts)
+    elif isinstance(instruccion, ArrayInstruction): return procesarArregloInstruccion(instruccion, ts)
+    elif isinstance(instruccion, Boolean): return procesarBoolean(instruccion, ts)
+    else : print('ERROR: instrucción no válida')
 
 # Funcion uniform
 def uniform():
