@@ -34,4 +34,5 @@ $ python3 REPL.py
 <Dacary> .load full
 <Dacary> .failed
 <Dacary> .reset
+<Dacary> .ast 5*4-3+2/1
 ```

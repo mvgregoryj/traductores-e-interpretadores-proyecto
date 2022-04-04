@@ -10,23 +10,29 @@ import VM
 # Variables Globales
 arrayTuplas = []
 
+# dictionary of names
+identificadores ={}
 
-while True:
-    data = input("<Dacary> ").strip()
 
-    if data == '.':
-        break
+if __name__ == '__main__':
 
-    elif data.startswith('.reset'):
-        VM.reset(arrayTuplas)
 
-    elif data.startswith('.ast'):
-        mensajeParser = VM.testParser(data)
+    while True:
+        data = input("<Dacary> ").strip()
 
-        print(mensajeParser)
+        if data == '.':
+            break
 
-    else:
-        mensajeVM = VM.process(data, arrayTuplas)
-        
-        if len(mensajeVM) > 1:
-            print(mensajeVM)
+        elif data.startswith('.reset'):
+            VM.reset(arrayTuplas)
+
+        elif data.startswith('.ast'):
+            mensajeParser = VM.testParser(data)
+
+            print(mensajeParser)
+
+        else:
+            mensajeVM = VM.process(data, arrayTuplas)
+            
+            if len(mensajeVM) > 1:
+                print(mensajeVM)

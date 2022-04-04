@@ -8,6 +8,10 @@ Grupo Dacary:
 #import ply.lex as lex
 from ply.lex import lex
 from ply.yacc import yacc
+from REPL import identificadores
+import random
+import math
+import time
 
 # Process
 def process (input: str, arrayTuplas: list) -> str:
@@ -23,14 +27,25 @@ def process (input: str, arrayTuplas: list) -> str:
     elif input.startswith('.failed'):
         return failed(arrayTuplas)
 
-    # elif input.startswith('.reset'):
-    #     arrayTuplas = reset()
-
     elif input == "":
         return ""
 
     else:
-        return f"ERROR: interpretación no implementada"
+        # Eliminamos los espacios antes y despues de la expresión
+        input = input.strip().split()
+        
+        if input[0] == 'int' or input[0] == 'bool' or input[0] == '[int]' or input[0] == '[bool]':
+
+            # Almacenamos en el diccionario identificadores el nombre de la variable, su tipo y su valor
+            identificadores[input[1]] = (input[0], input[3])
+
+            print(identificadores)
+        
+        return identificadores
+
+
+        #return f"ERROR: interpretación no implementada"
+
 
 # Crea
 def ejecutarLexer ():
@@ -264,19 +279,31 @@ class Definition(Expr):
         self.type = type
         self.id = id
         self.expression = expression
+
+    def definir(self):
+        global identificadores
+
+        identificadores[f"{self.id}"] = (self.type, self.expression)
     
     def __repr__(self):
         return f"Def({self.type}, {self.id}, {self.expression})"
-        #return "Def(%r, %r, %r)" % (self.type, self.id, self.expression)
 
 class Assignment(Expr):
     def __init__(self, id, expression):
         self.id = id
         self.expression = expression
 
+    def asignar(self):
+        global identificadores
+        
+        if f"{self.id}" in identificadores:
+            identificadores[f"{self.id}"] = (identificadores[f"{self.id}"][0], self.expression)
+        else:
+            print("ERROR: identificador no definido")
+            # identificadores[f"{self.id}"] = (f"{type(self.expression)}", self.expression)
+
     def __repr__(self):
         return f"Assign({self.id}, {self.expression})"
-        #return "Assign(%r, %r)" % (self.id, self.expression)
 
 class BasicType(Expr):
     def __init__(self, type):
@@ -284,7 +311,6 @@ class BasicType(Expr):
 
     def __repr__(self):
         return f"{self.type}"
-        #return "%r" % (self.type)
 
 class BinOp(Expr):
     def __init__(self,left,op,right):
@@ -293,7 +319,6 @@ class BinOp(Expr):
         self.right = right
 
     def __repr__(self):
-        #return "(%r %r %r)" % (self.left, self.op, self.right)
         if self.op == ',':
             return f"{self.left}{self.op} {self.right}"
 
@@ -327,7 +352,6 @@ class UnaOp(Expr):
 
     def __repr__(self):
         return f"{self.op}{self.right}"
-        #return "%r%r" % (self.op, self.right)
 
 class Grouped(Expr):
     def __init__(self,type,left,expression,right):
@@ -337,7 +361,6 @@ class Grouped(Expr):
         self.right = right
 
     def __repr__(self):
-        #return "%r%r%r" % (self.left, self.expression, self.right)
         if self.type == "Par" and self.expression != BinOp:
             return f"{self.expression}"
         else:
@@ -350,7 +373,6 @@ class ArrayInstruction(Expr):
 
     def __repr__(self):
         return f"{self.id}[{self.expression}]"
-        #return "%r[%r]" % (self.id, self.expression)
        
 
 # Funcion parse:
@@ -379,8 +401,6 @@ def parse(input: str):
         ('right', 'TkUMinus', 'TkUPlus', 'TkNot'),            # Unary minus operator
         ('left', 'TkPower')
     )
-    # dictionary of names
-    identificadores ={}
 
     def p_entrada(p):
         '''
@@ -405,12 +425,14 @@ def parse(input: str):
         definicion : tipo identificador TkAssign expresion TkSemicolon
         '''
         p[0] = Definition(p[1], p[2], p[4])
+        Definition(p[1], p[2], p[4]).definir()
 
     def p_asignacion(p):
         '''
         asignacion : identificador TkAssign expresion TkSemicolon
         '''
         p[0] = Assignment(p[1], p[3])
+        Assignment(p[1], p[3]).asignar()
 
     def p_tipo(p):
         '''
@@ -586,3 +608,44 @@ def testParser(input: str) -> str:
     astString = ast2str(ast)
 
     return astString
+
+# Funcion uniform
+def uniform():
+    return random.uniform(0,1)
+
+def floor(expr):
+    return math.floor(expr)
+
+# Funcion length, devuelve el tamaño de un arreglo    
+def length(expr):
+    return len(expr)
+
+# Funcion sum, retorna la suma de un arreglo de numeros
+def sum(expr):
+    suma = 0
+    
+    for i in range(0, len(expr)):
+        suma = suma + expr[i]
+        
+    return suma
+
+# Funcion avg, retorna el promedio de un arreglo de números
+def avg(expr):
+    avg = sum(expr)/length(expr)
+    return avg
+
+# Funcion pi, retorna una aproximación al numero pi
+def pi():
+    return math.pi
+
+# Funcion reset, elimina todas las variables definidas por el usuario en la VM
+def reset(variables):
+    variables.clear()
+    
+    if len(variables) == 0:
+        print(True)
+
+# Funcion now, retorna un número entero correspondiente al número de milisegundos transcurridos desde un
+# punto de referencia en el tiempo
+def now():
+    return int(round(time.time() * 1000))

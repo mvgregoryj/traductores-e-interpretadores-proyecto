@@ -3,7 +3,7 @@
 ##  Primera gramática: sintaxis de Stókhos
 
 ```bash
-<entrada> -> <instruccion> | <expresion>
+<entrada> -> <instruccion> | <expresion> | <funcion>
 
 <instruccion> -> <definicion> | <asignacion>
 
@@ -46,6 +46,19 @@
         -> <expresion> && <expresion>
         -> <expresion> || <expresion>   
         -> <expresion> , <expresion>   
+
+<funcion>
+        -> if(<condición>, < expT>, < expF>)
+        -> type(<exp>)
+        -> ltype(<exp>)
+        -> reset()
+        -> uniform()
+        -> floor(<exp>)
+        -> length(<exp>)
+        -> sum(<exp>)
+        -> avg(<exp>)
+        -> pi()
+        -> now()
 ```
 
 ##  Segunda gramática: Utilizada para la construcción del reconocedor.
