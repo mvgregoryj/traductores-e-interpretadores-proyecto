@@ -6,6 +6,7 @@ Grupo Dacary:
 '''
 
 #import ply.lex as lex
+from ast import Expression
 from ply.lex import lex
 from ply.yacc import yacc
 from REPL import identificadores
@@ -275,7 +276,125 @@ def failed (arrayTuplas: list) -> str:
 def reset(arrayTuplas):
     for i in range(0, len(arrayTuplas)):
         arrayTuplas.pop()
+        
+#########################################################
 
+# Funcion uniform, retorna un número entero “aleatorio” entre 0 y 1.
+def uniform():
+    return random.uniform(0,1)
+
+# Funcion floor, retorna el mayor número entero n tal que n <= x
+def floor(expr):
+    return math.floor(expr)
+
+# Funcion length, devuelve el tamaño de un arreglo    
+def length(expr):
+    return len(expr)
+
+# Funcion sum, retorna la suma de un arreglo de numeros
+def sum(expr):
+    suma = 0
+    
+    for i in range(0, len(expr)):
+        suma = suma + expr[i]
+        
+    return suma
+
+# Funcion avg, retorna el promedio de un arreglo de números
+def avg(expr):
+    avg = sum(expr)/length(expr)
+    return avg
+
+# Funcion pi, retorna una aproximación al numero pi
+def pi():
+    return math.pi
+
+# Funcion reset, elimina todas las variables definidas por el usuario en la VM
+def reset():
+    identificadores.clear()    
+    if len(identificadores) == 0:
+        print(True)
+
+# Funcion now, retorna un número entero correspondiente al número de milisegundos transcurridos desde un
+# punto de referencia en el tiempo
+def now():
+    return int(round(time.time() * 1000))
+
+#########################################################
+
+class Expr: pass
+
+class Uniform():
+    def __init__(self):
+        self = None
+        
+    def __repr__(self):
+        return f"{uniform()}"
+
+class Floor(Expr):
+    def __init__(self,expression):
+        self.expression = expression
+        
+    def __repr__(self):
+        return f"{floor(self.expression)}"
+
+class Length(Expr):
+    def __init__(self,expression):
+        self.expression = expression
+        
+    def __repr__(self):
+        return f"{length(self.expression)}"
+    
+class Sum(Expr):
+    def __init__(self,expression):
+        self.expression = expression
+        
+    def __repr__(self):
+        return f"{sum(self.expression)}"
+    
+class Avg(Expr):
+    def __init__(self,expression):
+        self.expression = expression
+        
+    def __repr__(self):
+        return f"{avg(self.expression)}"
+    
+class Pi():
+    def __init__(self):
+        self = None
+        
+    def __repr__(self):
+        return f"{pi()}"
+
+class Reset():
+    def __init__(self):
+        self = None
+        
+    def __repr__(self):
+        return f"{reset()}"
+
+class Now():
+    def __init__(self):
+        self = None
+        
+    def __repr__(self):
+        return str(now())
+    
+class Conditional(Expr):
+    def __init__(self, condicion, expT, expF):
+        self.condicion = condicion
+        self.expT = expT
+        self.expF = expF
+        
+class Type(Expr):
+    def __init__(self,expression):
+        self.expression = expression
+        
+class Ltype(Expr):
+    def __init__(self,expression):
+        self.expression = expression    
+    
+#########################################################
 
 # Funcion parse:
 # Parse recibe la secuencia de caracteres correspondiente a la entrada 
@@ -486,7 +605,76 @@ def parse(input: str):
         expresionArregloInstruccion : identificador TkOpenBracket expresionNumerica TkCloseBracket
         '''
         p[0] = ArrayInstruction(p[1], p[3])
+        
+    def p_funcion(p):
+        ''' 
+        funcion : TkIf TkOpenPar condicion TkComma expT TkComma expF TkClosePar
+                | TkType TkOpenPar expresionNormal TkClosePar
+                | TkLtype TkOpenPar expresionNormal TkClosePar
+                | TkReset TkOpenPar TkClosePar
+                | TkUniform TkOpenPar TkClosePar
+                | TkFloor TkOpenPar expresionNumerica TkClosePar
+                | TkLength TkOpenPar expresionArreglo TkClosePar
+                | TkSum TkOpenPar expresionNumerica TkClosePar
+                | TkAvg TkOpenPar expresionNumerica TkClosePar
+                | TkPi TkOpenPar TkClosePar
+                | TkNow TkOpenPar TkClosePar
+        '''
+        if len(p) == 4:
+            if (p[1] == 'TkReset'):
+                p[0] = Reset()
+                
+            elif(p[1] == 'TkUniform'):
+                p[0] = Uniform()
+                
+            elif(p[1] == 'TkPi'):
+                p[0] = Pi()
+                
+            elif(p[1] == 'TkNow'):
+                p[0] = Now()
+        
+        elif len(p) == 5:
+            if (p[1] == 'TkFloor'):
+                p[0] = Floor(p[3])
+                
+            elif (p[1] == 'TkLength'):
+                p[0] = Length(p[3])
+            
+            elif (p[1] == 'TkSum'):
+                p[0] = Sum(p[3])
+            
+            elif (p[1] == 'TkAvg'):
+                p[0] = Avg(p[3])
+                
+            elif (p[1] == 'TkType'):
+                p[0] = Type(p[3])
+                
+            elif (p[1] == 'TkLtype'):
+                p[0] = Ltype(p[3])
+        
+        elif len(p) == 9:
+            if (p[1] == 'TkIf'):
+                p[0] = Conditional(p[3], p[5], p[7])
 
+     
+    def p_condicion(p):
+        '''
+        condicion : expresionLogica
+        '''
+        p[0] = p[1]
+        
+    def p_expT(p):
+        '''
+        expT : entrada
+        '''
+        p[0] = p[1]
+        
+    def p_expF(p):
+        '''
+        expF : entrada
+        '''
+        p[0] = p[1]
+        
     def p_error(p):
         print(f'Syntax error at {p.value!r}')
 
@@ -665,43 +853,3 @@ def procesar_instruccion(input: str, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion, Boolean): return procesarBoolean(instruccion, ts)
     else : print('ERROR: instrucción no válida')
 
-# Funcion uniform
-def uniform():
-    return random.uniform(0,1)
-
-def floor(expr):
-    return math.floor(expr)
-
-# Funcion length, devuelve el tamaño de un arreglo    
-def length(expr):
-    return len(expr)
-
-# Funcion sum, retorna la suma de un arreglo de numeros
-def sum(expr):
-    suma = 0
-    
-    for i in range(0, len(expr)):
-        suma = suma + expr[i]
-        
-    return suma
-
-# Funcion avg, retorna el promedio de un arreglo de números
-def avg(expr):
-    avg = sum(expr)/length(expr)
-    return avg
-
-# Funcion pi, retorna una aproximación al numero pi
-def pi():
-    return math.pi
-
-# Funcion reset, elimina todas las variables definidas por el usuario en la VM
-def reset(variables):
-    variables.clear()
-    
-    if len(variables) == 0:
-        print(True)
-
-# Funcion now, retorna un número entero correspondiente al número de milisegundos transcurridos desde un
-# punto de referencia en el tiempo
-def now():
-    return int(round(time.time() * 1000))

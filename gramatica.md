@@ -67,7 +67,8 @@
 <entrada> -> 
           -> <instruccion> 
           -> <expresion>
-
+          -> <funcion>
+          
 <instruccion> -> <definicion> | <asignacion>
 
 <definicion> -> <tipo> <identificador> := <expresion> ;
@@ -141,4 +142,26 @@
 
 <expresionArregloInstruccion>
         -> <identificador>[<expresionNumerica>]
+
+<funcion>
+        -> if(<condición>, <expT>, <expF>)
+        -> type(<expresion>)
+        -> ltype(<expresion>)
+        -> reset()
+        -> uniform()
+        -> floor(<expresionNumerica>)
+        -> length(<expresionArreglo>)
+        -> sum(<expresionNumerica>)
+        -> avg(<expresionNumerica>)
+        -> pi()
+        -> now()
+
+<condicion>
+        -> <expresionLogica>
+
+<expT>
+        -> <entrada>
+
+<expF>
+        -> <entrada>
 ```
