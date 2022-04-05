@@ -109,6 +109,13 @@ class ArrayInstruction(Expr):
     def __repr__(self):
         return f"{self.id}[{self.expression}]"
     
+
+class Conditional(Expr):
+    def __init__(self, condicion, expT, expF):
+        self.condicion = condicion
+        self.expT = expT
+        self.expF = expF
+
 ################################################
 
 # class TIPO_DATO(Enum):

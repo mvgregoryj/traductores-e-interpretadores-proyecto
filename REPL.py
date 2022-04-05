@@ -10,10 +10,6 @@ import VM
 # Variables Globales
 arrayTuplas = []
 
-# dictionary of names
-identificadores ={}
-
-
 if __name__ == '__main__':
 
 

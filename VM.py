@@ -9,7 +9,6 @@ Grupo Dacary:
 from ast import Expression
 from ply.lex import lex
 from ply.yacc import yacc
-from REPL import identificadores
 from Objetos import *
 import random
 import math
@@ -85,7 +84,20 @@ def ejecutarLexer ():
         'TkComma',
         'TkAssign',
         'TkSemicolon',
-        'TkColon'
+        'TkColon',
+
+        # Funciones predefinidas
+        'TkIf',
+        'TkType',
+        'TkLtype',
+        'TkReset',
+        'TkUniform',
+        'TkFloor',
+        'TkLength',
+        'TkSum',
+        'TkAvg',
+        'TkPi',
+        'TkNow'
     )
 
     # Tokens con regex
@@ -94,7 +106,18 @@ def ejecutarLexer ():
         'num' : 'TkNum',
         'bool' : 'TkBool',
         'false' : 'TkFalse',
-        'true' : 'TkTrue'
+        'true' : 'TkTrue',
+        'if' : 'TkIf',
+        'type' : 'TkType',
+        'ltype' : 'TkLtype',
+        'reset' : 'TkReset',
+        'uniform' : 'TkUniform',
+        'floor' : 'TkFloor',
+        'length' : 'TkLength',
+        'sum' : 'TkSum',
+        'avg' : 'TkAvg',
+        'pi' : 'TkPi',
+        'now' : 'TkNow'
     }
 
     # Tokens Identificadores
@@ -380,11 +403,11 @@ class Now():
     def __repr__(self):
         return str(now())
     
-class Conditional(Expr):
-    def __init__(self, condicion, expT, expF):
-        self.condicion = condicion
-        self.expT = expT
-        self.expF = expF
+# class Conditional(Expr):
+#     def __init__(self, condicion, expT, expF):
+#         self.condicion = condicion
+#         self.expT = expT
+#         self.expF = expF
         
 class Type(Expr):
     def __init__(self,expression):
@@ -428,6 +451,7 @@ def parse(input: str):
         entrada : 
                 | instruccion 
                 | expresion
+                | funcion
         '''
         if len(p) == 1:
             p[0] = ""
@@ -605,7 +629,7 @@ def parse(input: str):
         expresionArregloInstruccion : identificador TkOpenBracket expresionNumerica TkCloseBracket
         '''
         p[0] = ArrayInstruction(p[1], p[3])
-        
+
     def p_funcion(p):
         ''' 
         funcion : TkIf TkOpenPar condicion TkComma expT TkComma expF TkClosePar
@@ -621,42 +645,41 @@ def parse(input: str):
                 | TkNow TkOpenPar TkClosePar
         '''
         if len(p) == 4:
-            if (p[1] == 'TkReset'):
+            if (p[1] == 'reset'):
                 p[0] = Reset()
                 
-            elif(p[1] == 'TkUniform'):
+            elif(p[1] == 'uniform'):
                 p[0] = Uniform()
                 
-            elif(p[1] == 'TkPi'):
+            elif(p[1] == 'pi'):
                 p[0] = Pi()
                 
-            elif(p[1] == 'TkNow'):
+            elif(p[1] == 'now'):
                 p[0] = Now()
         
         elif len(p) == 5:
-            if (p[1] == 'TkFloor'):
+            if (p[1] == 'floor'):
                 p[0] = Floor(p[3])
                 
-            elif (p[1] == 'TkLength'):
+            elif (p[1] == 'length'):
                 p[0] = Length(p[3])
             
-            elif (p[1] == 'TkSum'):
+            elif (p[1] == 'sum'):
                 p[0] = Sum(p[3])
             
-            elif (p[1] == 'TkAvg'):
+            elif (p[1] == 'avg'):
                 p[0] = Avg(p[3])
                 
-            elif (p[1] == 'TkType'):
+            elif (p[1] == 'type'):
                 p[0] = Type(p[3])
                 
-            elif (p[1] == 'TkLtype'):
+            elif (p[1] == 'ltype'):
                 p[0] = Ltype(p[3])
         
         elif len(p) == 9:
-            if (p[1] == 'TkIf'):
+            if (p[1] == 'if'):
                 p[0] = Conditional(p[3], p[5], p[7])
 
-     
     def p_condicion(p):
         '''
         condicion : expresionLogica
@@ -665,16 +688,16 @@ def parse(input: str):
         
     def p_expT(p):
         '''
-        expT : entrada
+        expT : expresion
         '''
         p[0] = p[1]
         
     def p_expF(p):
         '''
-        expF : entrada
+        expF : expresion
         '''
         p[0] = p[1]
-        
+
     def p_error(p):
         print(f'Syntax error at {p.value!r}')
 
@@ -734,7 +757,7 @@ def procesarAsignacion(instruccion: Assignment, ts: TablaDeSimbolos) -> str:
 
     return f"ACK: {instruccion.id} := {instruccion.expression};"
 
-def procesarOperacionBinaria(instruccion, ts) :
+def procesarOperacionBinaria(instruccion, ts):
     if isinstance(instruccion, BinOp) :
         expLeft = procesarOperacionBinaria(instruccion.left, ts)
         expRight = procesarOperacionBinaria(instruccion.right, ts)
@@ -756,7 +779,7 @@ def procesarOperacionBinaria(instruccion, ts) :
     elif isinstance(instruccion, Boolean):
         return instruccion.value
     elif isinstance(instruccion, Identifier):
-        return ts.valor_simbolo(instruccion)
+        return ts.valor_simbolo(instruccion).value
     elif isinstance(instruccion, UnaOp):
         return procesarOperacionUnaria(instruccion, ts)
     elif isinstance(instruccion, Grouped):
@@ -788,36 +811,39 @@ def procesarOperacionUnaria(instruccion, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion, Boolean):
         return instruccion.value
 
-def procesarAgrupacion(instruccion: Grouped, ts: TablaDeSimbolos) -> str:
+def procesarAgrupacion(instruccion, ts: TablaDeSimbolos) -> str:
 
-    if instruccion.type == "Par":
-        if isinstance(instruccion.expression, Grouped):          
-            return procesarAgrupacion(instruccion.expression, ts)
-        elif isinstance(instruccion.expression, BinOp):
-            return procesarOperacionBinaria(instruccion.expression, ts)
-        elif isinstance(instruccion.expression, Number):
-            return instruccion.expression.value
-        elif isinstance(instruccion.expression, Boolean):
-            return f"{instruccion.expression.value}".lower()
-        elif isinstance(instruccion.expression, Identifier):
-            return ts.valor_simbolo(instruccion.expression)
-        elif isinstance(instruccion.expression, UnaOp):
-            return procesarOperacionUnaria(instruccion.expression, ts)
-        
-    elif instruccion.type == "SingleQuote":
-        if isinstance(instruccion.expression, Grouped):
-            return instruccion.expression
-        elif isinstance(instruccion.expression, BinOp):
-            return f"{instruccion.expression.left} {instruccion.expression.op} {instruccion.expression.right}"
-        elif isinstance(instruccion.expression, Number):
-            return instruccion.expression.value
-        elif isinstance(instruccion.expression, Boolean):
-            return f"{instruccion.expression.value}".lower()
-        elif isinstance(instruccion.expression, Identifier):
-            return instruccion.expression.value
-        elif isinstance(instruccion.expression, UnaOp):
-            return f"{instruccion.expression.op}{instruccion.expression.right}"
+    if isinstance(instruccion, Grouped):
+        if instruccion.type == "Par":
+            if isinstance(instruccion.expression, Grouped):          
+                return procesarAgrupacion(instruccion.expression, ts)
+            elif isinstance(instruccion.expression, BinOp):
+                return procesarOperacionBinaria(instruccion.expression, ts)
+            elif isinstance(instruccion.expression, Number):
+                return instruccion.expression.value
+            elif isinstance(instruccion.expression, Boolean):
+                return f"{instruccion.expression.value}".lower()
+            elif isinstance(instruccion.expression, Identifier):
+                return ts.valor_simbolo(instruccion.expression)
+            elif isinstance(instruccion.expression, UnaOp):
+                return procesarOperacionUnaria(instruccion.expression, ts)
+            
+        elif instruccion.type == "SingleQuote":
+            if isinstance(instruccion.expression, Grouped):
+                return instruccion.expression
+            elif isinstance(instruccion.expression, BinOp):
+                return f"{instruccion.expression.left} {instruccion.expression.op} {instruccion.expression.right}"
+            elif isinstance(instruccion.expression, Number):
+                return instruccion.expression.value
+            elif isinstance(instruccion.expression, Boolean):
+                return f"{instruccion.expression.value}".lower()
+            elif isinstance(instruccion.expression, Identifier):
+                return instruccion.expression.value
+            elif isinstance(instruccion.expression, UnaOp):
+                return f"{instruccion.expression.op}{instruccion.expression.right}"
 
+    elif isinstance(instruccion, Number):
+        return instruccion.value
 
 
             # elif instruccion.type == "Bracket": return f"{instruccion.left}{instruccion.expression}{instruccion.right}"
@@ -830,6 +856,13 @@ def procesarArregloInstruccion(instruccion: ArrayInstruction, ts: TablaDeSimbolo
 def procesarBoolean(instruccion: Boolean, ts: TablaDeSimbolos) -> str:
     return instruccion.value
 
+def procesarConditional(instruccion: Conditional, ts):
+    condicion = procesarOperacionBinaria(instruccion.condicion, ts)
+    if condicion == "true":
+        return procesarOperacionBinaria(instruccion.expT, ts)
+    else:
+        return procesarOperacionBinaria(instruccion.expF, ts)
+
 
 # Funcion procesar_instruccion:
 # Recibe una instruccion y la procesa
@@ -837,6 +870,7 @@ def procesar_instruccion(input: str, ts: TablaDeSimbolos) -> str:
 
     # Llamamos a parser con el input ingresado por el usuario
     instruccion = parse(input)
+    print(type(instruccion))
 
     # print(type(instruccion))
     # print(type(instruccion.expression))
@@ -851,5 +885,6 @@ def procesar_instruccion(input: str, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion, Grouped): return procesarAgrupacion(instruccion, ts)
     elif isinstance(instruccion, ArrayInstruction): return procesarArregloInstruccion(instruccion, ts)
     elif isinstance(instruccion, Boolean): return procesarBoolean(instruccion, ts)
+    elif isinstance(instruccion, Conditional): return procesarConditional(instruccion, ts)
     else : print('ERROR: instrucción no válida')
 

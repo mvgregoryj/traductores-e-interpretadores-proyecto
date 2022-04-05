@@ -144,7 +144,7 @@
         -> <identificador>[<expresionNumerica>]
 
 <funcion>
-        -> if(<condición>, <expT>, <expF>)
+        -> if(<condicion>, <expT>, <expF>)
         -> type(<expresion>)
         -> ltype(<expresion>)
         -> reset()
@@ -160,8 +160,8 @@
         -> <expresionLogica>
 
 <expT>
-        -> <entrada>
+        -> <expresion>
 
 <expF>
-        -> <entrada>
+        -> <expresion>
 ```
