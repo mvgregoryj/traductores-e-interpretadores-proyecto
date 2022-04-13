@@ -251,7 +251,7 @@ def load (data: str, arrayTuplas: list) -> str:
                 mensajeLoad = mensajeLoad + f"{mensaje}\n"
 
                 # Si la respuesta da ERROR se guarda el nombre del archivo, la linea y el mensaje en una lista de tuplas
-                if mensaje.startswith('ERROR: '):
+                if mensaje.startswith('ERROR: ') or mensaje.startswith('Syntax error '):
                     arrayTuplas.append((nombreArchivo, numline, mensaje))
 
             # Archivo contiene otros nombres de archivos dentro
@@ -333,7 +333,7 @@ def pi():
     return math.pi
 
 # Funcion reset, elimina todas las variables definidas por el usuario en la VM
-def reset():
+def reset2():
     identificadores.clear()    
     if len(identificadores) == 0:
         print(True)
@@ -394,7 +394,7 @@ class Reset():
         self = None
         
     def __repr__(self):
-        return f"{reset()}"
+        return f"{reset2()}"
 
 class Now():
     def __init__(self):
@@ -429,7 +429,7 @@ def parse(input: str):
 
     # Entrada para el lexer
     lexer.input(input)
-
+       
     # --- Parser
 
     # Write functions for each grammar rule which is
@@ -699,34 +699,40 @@ def parse(input: str):
         p[0] = p[1]
 
     def p_error(p):
-        print(f'Syntax error at {p.value!r}')
+        p[0] = f'Syntax error at {p.value!r}'
 
     # Construyendo el parser de yacc
     parseador = yacc()
 
     ast = parseador.parse(input)
 
-    return ast
+    return ast, arrayErrores
 
 # Funcion ast2str:
 # Técnicamente, ast2str implementa una traducción. Para simplificar la 
 # traducción, y hacerla amigable, las expresiones deben ser regeneradas con 
 # paréntesis redundantes usando notación infija:
-def ast2str(ast) -> str:
-    return(f'{ast}')
-
+def ast2str(input, ast, arrayErrores) -> str:
+    
+    if (len(arrayErrores) > 0):
+        return f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"
+    
+    else:
+        return f'OK: ast("{input}") ==> {ast}'
+    
 # Funcion testParser:
 # Llama a parse y convierte el AST resultante en un string que puede ser 
 # consumido por el REPL
+
 def testParser(input: str) -> str:
 
     # Eliminamos los espacios antes y despues de la expresión
     input = input[4:].strip()
 
     # Llamamos a parser con el input ingresado por el usuario
-    ast = parse(input)
-
-    astString = ast2str(ast)
+    ast, arrayErrores = parse(input)
+    
+    astString = ast2str(input, ast, arrayErrores)
 
     return astString
 
