@@ -178,5 +178,13 @@ class TablaDeSimbolos():
         else: 
             self.simbolos[str(simbolo.id)] = Definition(self.simbolos[str(simbolo.id)].type, simbolo.id, simbolo.expression)
 
+    def limpiar_ts(self):
+        """
+        Limpia la tabla de simbolos.
+        """
+        self.simbolos = {}
+        
+        return True
+
     def __str__(self) -> str:
         return f"{self.simbolos}"

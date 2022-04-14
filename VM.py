@@ -17,41 +17,11 @@ import time
 ts_global = TablaDeSimbolos()
 
 # Process
-def process (input: str, arrayTuplas: list) -> str:
+def process (input: str) -> str:
 
-    if input.startswith('.lex'):        
-        data, arrayTokens, arrayErrores = lexTest(input)
-        return mensajeLexer(data, arrayTokens, arrayErrores)
+    return procesar_instruccion(input, ts_global)
 
-    elif input.startswith('.load'):
-        return load(input, arrayTuplas)
-
-    elif input.startswith('.failed'):
-        return failed(arrayTuplas)
-
-    elif input == "":
-        return ""
-
-    else:
-        return procesar_instruccion(input, ts_global)
-
-        # # Eliminamos los espacios antes y despues de la expresión
-        # input = input.strip().split()
-        
-        # if input[0] == 'int' or input[0] == 'bool' or input[0] == '[int]' or input[0] == '[bool]':
-
-        #     # Almacenamos en el diccionario identificadores el nombre de la variable, su tipo y su valor
-        #     identificadores[input[1]] = (input[0], input[3])
-
-        #     print(identificadores)
-        
-        # return identificadores
-
-
-        #return f"ERROR: interpretación no implementada"
-
-
-# Crea
+# Función interna que construye una secuencia de tokens
 def ejecutarLexer ():
     # Arreglo a usar
     arrayErrores = []
@@ -211,95 +181,9 @@ def lexTest (data: str):
            
     return data, arrayTokens, arrayErrores
     
-# Funcion mensajeLexer
-def mensajeLexer(data: str, arrayTokens: list, arrayErrores: list) -> str:
-    
-    if (len(arrayErrores) > 0):
-        return f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"
-    
-    else:
-        return f'OK: lex("{data}") ==> {arrayTokens}'
 
-# Funcion load
-def load (data: str, arrayTuplas: list) -> str:
-
-    mensajeLoad = ""
-    
-    try: 
-        data = data[5:].strip()
-        file1 = open(data, "r")
-        
-    except:
-        return f"ERROR: archivo no encontrado." 
-        
-    Lines = file1.readlines()
-    nombreArchivo = data
-                
-    numline = 0 
-    
-    for line in Lines:
-        numline += 1
-
-        # Ignoramos las lineas en blanco o espacios en blanco o tabulaciones
-        if not line.isspace():
-            data = line.strip()
-
-            # Archivo contiene .lex en la linea numline
-            if data.startswith('.lex'):
-                data, arrayTokens, arrayErrores = lexTest(data)
-                mensaje = mensajeLexer(data, arrayTokens, arrayErrores)
-                mensajeLoad = mensajeLoad + f"{mensaje}\n"
-
-                # Si la respuesta da ERROR se guarda el nombre del archivo, la linea y el mensaje en una lista de tuplas
-                if mensaje.startswith('ERROR: ') or mensaje.startswith('Syntax error '):
-                    arrayTuplas.append((nombreArchivo, numline, mensaje))
-
-            # Archivo contiene otros nombres de archivos dentro
-            elif data.startswith('.load'):
-                mensaje = load(data, arrayTuplas)       
-                mensajeLoad = mensajeLoad + f"{mensaje}\n"
-
-            # Archivo contiene .failed en la linea numline
-            elif data.startswith('.failed'):
-                mensajeLoad = mensajeLoad + f"{failed(arrayTuplas)}\n"
-
-            # Archivo contiene .reset en la linea numline
-            elif data.startswith('.reset'):
-                reset(arrayTuplas)
-
-            # Archivo contiene .ast en la linea numline
-            elif data.startswith('.ast'):
-                mensaje = testParser(data)
-                mensajeLoad = mensajeLoad + f"{mensaje}\n"
-            
-            # Si no se ingresa alguno de los comandos especificados se devuelve ERROR
-            elif not data.startswith('.lex') or not data.startswith('.load') or not data.startswith('.failed') or not data.startswith('.reset') or not data.startswith('.ast'):
-                arrayTuplas.append((nombreArchivo, numline, f"ERROR: interpretación no implementada"))
-                mensajeLoad = mensajeLoad + f"ERROR: interpretación no implementada\n"
-
-    file1.close()
-
-    return mensajeLoad[:len(mensajeLoad)-1]    # return mensajeLoad[:len(mensajeLoad)-1] para no incluir ultima linea en blanco
  
-# Funcion failed
-def failed (arrayTuplas: list) -> str:
-    msjFailed = f"[\n"
 
-    if len(arrayTuplas) > 0:
-        for i in range(0, len(arrayTuplas)-1):
-            msjFailed = msjFailed + f"\t{arrayTuplas[i]},\n"
-
-        msjFailed = msjFailed + f"\t{arrayTuplas[len(arrayTuplas)-1]}\n"
-        
-    msjFailed = msjFailed + f"]"
-
-    return msjFailed
-
-# Funcion reset
-def reset(arrayTuplas):
-    for i in range(0, len(arrayTuplas)):
-        arrayTuplas.pop()
-        
 #########################################################
 
 # Funcion uniform, retorna un número entero “aleatorio” entre 0 y 1.
@@ -419,17 +303,14 @@ class Ltype(Expr):
     
 #########################################################
 
-# Funcion parse:
-# Parse recibe la secuencia de caracteres correspondiente a la entrada 
-# indicada por el usuario y retorna el AST correspondiente
-def parse(input: str):
-
+#Funcion que guarda el objeto Parse de la libreria PLY, gracias a yacc en la variable global parseador
+def ejecutamosParseador():
     # Construimos el objecto lexer y el arreglo de errores
     tokens, lexer, arrayErrores = ejecutarLexer()
 
-    # Entrada para el lexer
-    lexer.input(input)
-       
+    # # Entrada para el lexer
+    # lexer.input(input)
+
     # --- Parser
 
     # Write functions for each grammar rule which is
@@ -443,7 +324,7 @@ def parse(input: str):
         ('left', 'TkPlus', 'TkMinus'),
         ('left', 'TkMult', 'TkDiv', 'TkMod'),
         ('right', 'TkUMinus', 'TkUPlus', 'TkNot'),            # Unary minus operator
-        ('left', 'TkPower')
+        ('right', 'TkPower')
     )
 
     def p_entrada(p):
@@ -699,42 +580,58 @@ def parse(input: str):
         p[0] = p[1]
 
     def p_error(p):
+        # print(f'Syntax error at {p.value!r}')
         p[0] = f'Syntax error at {p.value!r}'
 
-    # Construyendo el parser de yacc
-    parseador = yacc()
+    # Retornamos el parser de yacc
+    # return yacc(), arrayErrores
+    return yacc()
+
+parseador = ejecutamosParseador()
+
+# Funcion parse:
+# Parse recibe la secuencia de caracteres correspondiente a la entrada 
+# indicada por el usuario y retorna el AST correspondiente
+def parse(input: str):
 
     ast = parseador.parse(input)
 
-    return ast, arrayErrores
+    return ast
 
 # Funcion ast2str:
 # Técnicamente, ast2str implementa una traducción. Para simplificar la 
 # traducción, y hacerla amigable, las expresiones deben ser regeneradas con 
 # paréntesis redundantes usando notación infija:
-def ast2str(input, ast, arrayErrores) -> str:
-    
-    if (len(arrayErrores) > 0):
-        return f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"
-    
-    else:
-        return f'OK: ast("{input}") ==> {ast}'
-    
+def ast2str(ast) -> str:
+
+    # if (len(arrayErrores) > 0):
+    #     return f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"
+
+    # else:
+    #     return f'OK: ast("{input}") ==> {ast}'
+
+    return(f'{ast}')
+
 # Funcion testParser:
 # Llama a parse y convierte el AST resultante en un string que puede ser 
 # consumido por el REPL
-
 def testParser(input: str) -> str:
 
     # Eliminamos los espacios antes y despues de la expresión
     input = input[4:].strip()
 
     # Llamamos a parser con el input ingresado por el usuario
-    ast, arrayErrores = parse(input)
+    ast = parse(input)
+
+    # ast, arrayErrores = parse(input)
     
-    astString = ast2str(input, ast, arrayErrores)
+    # astString = ast2str(input, ast, arrayErrores)
+
+    astString = ast2str(ast)
 
     return astString
+
+#########################################################
 
 def procesarDefinicion(instruccion: Definition, ts: TablaDeSimbolos) -> str:
     if isinstance(instruccion.expression, BinOp):
@@ -851,11 +748,6 @@ def procesarAgrupacion(instruccion, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion, Number):
         return instruccion.value
 
-
-            # elif instruccion.type == "Bracket": return f"{instruccion.left}{instruccion.expression}{instruccion.right}"
-            # elif instruccion.type == "SingleQuote": return f"{instruccion.expression}"
-            # elif instruccion.type == "Brace": return f"{instruccion.left}{instruccion.expression}{instruccion.right}"
-
 def procesarArregloInstruccion(instruccion: ArrayInstruction, ts: TablaDeSimbolos) -> str:
     return instruccion
 
@@ -869,6 +761,14 @@ def procesarConditional(instruccion: Conditional, ts):
     else:
         return procesarOperacionBinaria(instruccion.expF, ts)
 
+def procesarReset(instruccion: Reset, ts: TablaDeSimbolos) -> str:
+    hola = ts.limpiar_ts()
+
+    if hola:
+        return "true"
+
+
+
 
 # Funcion procesar_instruccion:
 # Recibe una instruccion y la procesa
@@ -876,7 +776,7 @@ def procesar_instruccion(input: str, ts: TablaDeSimbolos) -> str:
 
     # Llamamos a parser con el input ingresado por el usuario
     instruccion = parse(input)
-    print(type(instruccion))
+    # print(type(instruccion))
 
     # print(type(instruccion))
     # print(type(instruccion.expression))
@@ -892,5 +792,15 @@ def procesar_instruccion(input: str, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion, ArrayInstruction): return procesarArregloInstruccion(instruccion, ts)
     elif isinstance(instruccion, Boolean): return procesarBoolean(instruccion, ts)
     elif isinstance(instruccion, Conditional): return procesarConditional(instruccion, ts)
+    elif isinstance(instruccion, Type): return procesarType(instruccion, ts)
+    elif isinstance(instruccion, Ltype): return procesarLtype(instruccion, ts)
+    elif isinstance(instruccion, Reset): return procesarReset(instruccion, ts)
+    elif isinstance(instruccion, Uniform): return procesarUniform(instruccion, ts)
+    elif isinstance(instruccion,Floor): return procesarFloor(instruccion, ts)
+    elif isinstance(instruccion,Length): return procesarLength(instruccion, ts)
+    elif isinstance(instruccion, Sum): return procesarSum(instruccion, ts)
+    elif isinstance(instruccion, Avg): return procesarAvg(instruccion, ts)
+    elif isinstance(instruccion, Pi): return procesarPi(instruccion, ts)
+    elif isinstance(instruccion, Now): return procesarNow(instruccion, ts)
     else : print('ERROR: instrucción no válida')
 
