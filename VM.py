@@ -54,20 +54,20 @@ def ejecutarLexer ():
         'TkComma',
         'TkAssign',
         'TkSemicolon',
-        'TkColon',
+        'TkColon'
 
-        # Funciones predefinidas
-        'TkIf',
-        'TkType',
-        'TkLtype',
-        'TkReset',
-        'TkUniform',
-        'TkFloor',
-        'TkLength',
-        'TkSum',
-        'TkAvg',
-        'TkPi',
-        'TkNow'
+        # # Funciones predefinidas
+        # 'TkIf',
+        # 'TkType',
+        # 'TkLtype',
+        # 'TkReset',
+        # 'TkUniform',
+        # 'TkFloor',
+        # 'TkLength',
+        # 'TkSum',
+        # 'TkAvg',
+        # 'TkPi',
+        # 'TkNow'
     )
 
     # Tokens con regex
@@ -76,18 +76,18 @@ def ejecutarLexer ():
         'num' : 'TkNum',
         'bool' : 'TkBool',
         'false' : 'TkFalse',
-        'true' : 'TkTrue',
-        'if' : 'TkIf',
-        'type' : 'TkType',
-        'ltype' : 'TkLtype',
-        'reset' : 'TkReset',
-        'uniform' : 'TkUniform',
-        'floor' : 'TkFloor',
-        'length' : 'TkLength',
-        'sum' : 'TkSum',
-        'avg' : 'TkAvg',
-        'pi' : 'TkPi',
-        'now' : 'TkNow'
+        'true' : 'TkTrue'
+        # 'if' : 'TkIf',
+        # 'type' : 'TkType',
+        # 'ltype' : 'TkLtype',
+        # 'reset' : 'TkReset',
+        # 'uniform' : 'TkUniform',
+        # 'floor' : 'TkFloor',
+        # 'length' : 'TkLength',
+        # 'sum' : 'TkSum',
+        # 'avg' : 'TkAvg',
+        # 'pi' : 'TkPi',
+        # 'now' : 'TkNow'
     }
 
     # Tokens Identificadores
@@ -229,63 +229,63 @@ def now():
 
 #########################################################
 
-class Expr: pass
+# class Expr: pass
 
-class Uniform():
-    def __init__(self):
-        self = None
+# class Uniform():
+#     def __init__(self):
+#         self = None
         
-    def __repr__(self):
-        return f"{uniform()}"
+#     def __repr__(self):
+#         return f"{uniform()}"
 
-class Floor(Expr):
-    def __init__(self,expression):
-        self.expression = expression
+# class Floor(Expr):
+#     def __init__(self,expression):
+#         self.expression = expression
         
-    def __repr__(self):
-        return f"{floor(self.expression)}"
+#     def __repr__(self):
+#         return f"{floor(self.expression)}"
 
-class Length(Expr):
-    def __init__(self,expression):
-        self.expression = expression
+# class Length(Expr):
+#     def __init__(self,expression):
+#         self.expression = expression
         
-    def __repr__(self):
-        return f"{length(self.expression)}"
+#     def __repr__(self):
+#         return f"{length(self.expression)}"
     
-class Sum(Expr):
-    def __init__(self,expression):
-        self.expression = expression
+# class Sum(Expr):
+#     def __init__(self,expression):
+#         self.expression = expression
         
-    def __repr__(self):
-        return f"{sum(self.expression)}"
+#     def __repr__(self):
+#         return f"{sum(self.expression)}"
     
-class Avg(Expr):
-    def __init__(self,expression):
-        self.expression = expression
+# class Avg(Expr):
+#     def __init__(self,expression):
+#         self.expression = expression
         
-    def __repr__(self):
-        return f"{avg(self.expression)}"
+#     def __repr__(self):
+#         return f"{avg(self.expression)}"
     
-class Pi():
-    def __init__(self):
-        self = None
+# class Pi():
+#     def __init__(self):
+#         self = None
         
-    def __repr__(self):
-        return f"{pi()}"
+#     def __repr__(self):
+#         return f"{pi()}"
 
-class Reset():
-    def __init__(self):
-        self = None
+# class Reset():
+#     def __init__(self):
+#         self = None
         
-    def __repr__(self):
-        return f"{reset2()}"
+#     def __repr__(self):
+#         return f"{reset2()}"
 
-class Now():
-    def __init__(self):
-        self = None
+# class Now():
+#     def __init__(self):
+#         self = None
         
-    def __repr__(self):
-        return str(now())
+#     def __repr__(self):
+#         return str(now())
     
 # class Conditional(Expr):
 #     def __init__(self, condicion, expT, expF):
@@ -293,13 +293,13 @@ class Now():
 #         self.expT = expT
 #         self.expF = expF
         
-class Type(Expr):
-    def __init__(self,expression):
-        self.expression = expression
+# class Type(Expr):
+#     def __init__(self,expression):
+#         self.expression = expression
         
-class Ltype(Expr):
-    def __init__(self,expression):
-        self.expression = expression    
+# class Ltype(Expr):
+#     def __init__(self,expression):
+#         self.expression = expression    
     
 #########################################################
 
@@ -332,7 +332,6 @@ def ejecutamosParseador():
         entrada : 
                 | instruccion 
                 | expresion
-                | funcion
         '''
         if len(p) == 1:
             p[0] = ""
@@ -342,7 +341,7 @@ def ejecutamosParseador():
     def p_instruccion(p):
         '''
         instruccion : definicion 
-                      | asignacion
+                    | asignacion
         '''
         p[0] = p[1]
 
@@ -352,34 +351,28 @@ def ejecutamosParseador():
         '''
         p[0] = Definition(p[1], p[2], p[4])
 
-        # Definition(p[1], p[2], p[4]).definir()
-
     def p_asignacion(p):
         '''
         asignacion : identificador TkAssign expresion TkSemicolon
         '''
         p[0] = Assignment(p[1], p[3])
-        # Assignment(p[1], p[3]).asignar()
 
     def p_tipo(p):
         '''
         tipo : tipoBasico
-               | tipoNoBasico
+             | TkOpenBracket tipo TkCloseBracket
         '''
-        p[0] = p[1]
+        if len(p) == 2:
+            p[0] = p[1]
+        else:
+            p[0] = Grouped("Bracket", p[1], p[2], p[3])
 
     def p_tipoBasico(p):
         '''
         tipoBasico : TkNum
-                     | TkBool
+                   | TkBool
         '''
         p[0] = BasicType(p[1])
-
-    def p_tipoNoBasico(p):
-        '''
-        tipoNoBasico : TkOpenBracket tipoBasico TkCloseBracket
-        '''
-        p[0] = Grouped("Bracket", p[1], p[2], p[3])
 
     def p_expresion(p):
         '''
@@ -399,23 +392,24 @@ def ejecutamosParseador():
         expresionNormal : expresionNumerica
                         | expresionLogica
                         | expresionArreglo
+                        | expresionFunciones
         '''
         p[0] = p[1]
     
     def p_expresionNumerica(p):
         '''
         expresionNumerica : numero 
-                            | identificador
-                            | TkOpenPar expresionNumerica TkClosePar
-                            | TkOpenBrace expresionNumerica TkCloseBrace
-                            | expresionNumerica TkPower expresionNumerica
-                            | TkPlus expresionNumerica %prec TkUPlus
-                            | TkMinus expresionNumerica %prec TkUMinus
-                            | expresionNumerica TkMult expresionNumerica
-                            | expresionNumerica TkDiv expresionNumerica
-                            | expresionNumerica TkMod expresionNumerica
-                            | expresionNumerica TkPlus expresionNumerica
-                            | expresionNumerica TkMinus expresionNumerica
+                          | identificador
+                          | TkOpenPar expresionNumerica TkClosePar
+                          | TkOpenBrace expresionNumerica TkCloseBrace
+                          | expresionNumerica TkPower expresionNumerica
+                          | TkPlus expresionNumerica %prec TkUPlus
+                          | TkMinus expresionNumerica %prec TkUMinus
+                          | expresionNumerica TkMult expresionNumerica
+                          | expresionNumerica TkDiv expresionNumerica
+                          | expresionNumerica TkMod expresionNumerica
+                          | expresionNumerica TkPlus expresionNumerica
+                          | expresionNumerica TkMinus expresionNumerica
         '''
         if len(p) == 2:
             p[0] = p[1]
@@ -446,20 +440,20 @@ def ejecutamosParseador():
     def p_expresionLogica(p):
         '''
         expresionLogica : booleano
-                          | identificador
-                          | TkOpenPar expresionLogica TkClosePar
-                          | TkOpenBrace expresionLogica TkCloseBrace
-                          | TkNot expresionLogica
-                          | expresionNumerica TkLT expresionNumerica
-                          | expresionNumerica TkLE expresionNumerica
-                          | expresionNumerica TkGE expresionNumerica
-                          | expresionNumerica TkGT expresionNumerica
-                          | expresionNumerica TkEQ expresionNumerica
-                          | expresionNumerica TkNE expresionNumerica
-                          | expresionLogica TkEQ expresionLogica
-                          | expresionLogica TkNE expresionLogica
-                          | expresionLogica TkAnd expresionLogica
-                          | expresionLogica TkOr expresionLogica   
+                        | identificador
+                        | TkOpenPar expresionLogica TkClosePar
+                        | TkOpenBrace expresionLogica TkCloseBrace
+                        | TkNot expresionLogica
+                        | expresionNumerica TkLT expresionNumerica
+                        | expresionNumerica TkLE expresionNumerica
+                        | expresionNumerica TkGE expresionNumerica
+                        | expresionNumerica TkGT expresionNumerica
+                        | expresionNumerica TkEQ expresionNumerica
+                        | expresionNumerica TkNE expresionNumerica
+                        | expresionLogica TkEQ expresionLogica
+                        | expresionLogica TkNE expresionLogica
+                        | expresionLogica TkAnd expresionLogica
+                        | expresionLogica TkOr expresionLogica   
         '''
         if len(p) == 2:
             p[0] = p[1]
@@ -478,113 +472,46 @@ def ejecutamosParseador():
     def p_booleano(p):
         '''
         booleano : TkTrue
-                   | TkFalse
+                 | TkFalse
         '''
         p[0] = Boolean(p[1])
     
     def p_expresionArreglo(p):
         '''
-        expresionArreglo : TkOpenBracket expresionArregloLLamada TkCloseBracket
-                           | expresionArregloInstruccion
+        expresionArreglo : TkOpenBracket expresionArgs TkCloseBracket
+                         | identificador TkOpenBracket expresionNumerica TkCloseBracket
         '''
-        if len(p) == 2:
-            p[0] = p[1]
-
-        elif len(p) == 4:
+        if len(p) == 4:
             if (p[1]=='[' and p[3]==']'):
                 p[0] = Grouped("Bracket", p[1], p[2], p[3])
+        else:
+            p[0] = ArrayExpression(p[1], p[3])
+                
 
-    def p_expresionArregloLLamada(p):
+    def p_expresionArgs(p):
         '''
-        expresionArregloLLamada : expresion TkComma expresionArregloLLamada
-                                | expresion  
+        expresionArgs : 
+                      | expresion TkComma expresionArgs
+                      | expresion  
         '''
-        if len(p) == 2:
+        if len(p) == 1:
+            p[0] = ""
+        elif len(p) == 2:
             p[0] = p[1]
-
         elif len(p) == 4:
             p[0] = BinOp(p[1], p[2], p[3])
 
-    def p_expresionArregloInstruccion(p):
+    def p_expresionFunciones(p):
         '''
-        expresionArregloInstruccion : identificador TkOpenBracket expresionNumerica TkCloseBracket
+        expresionFunciones : identificador TkOpenPar expresionArgs TkClosePar 
         '''
-        p[0] = ArrayInstruction(p[1], p[3])
-
-    def p_funcion(p):
-        ''' 
-        funcion : TkIf TkOpenPar condicion TkComma expT TkComma expF TkClosePar
-                | TkType TkOpenPar expresionNormal TkClosePar
-                | TkLtype TkOpenPar expresionNormal TkClosePar
-                | TkReset TkOpenPar TkClosePar
-                | TkUniform TkOpenPar TkClosePar
-                | TkFloor TkOpenPar expresionNumerica TkClosePar
-                | TkLength TkOpenPar expresionArreglo TkClosePar
-                | TkSum TkOpenPar expresionNumerica TkClosePar
-                | TkAvg TkOpenPar expresionNumerica TkClosePar
-                | TkPi TkOpenPar TkClosePar
-                | TkNow TkOpenPar TkClosePar
-        '''
-        if len(p) == 4:
-            if (p[1] == 'reset'):
-                p[0] = Reset()
-                
-            elif(p[1] == 'uniform'):
-                p[0] = Uniform()
-                
-            elif(p[1] == 'pi'):
-                p[0] = Pi()
-                
-            elif(p[1] == 'now'):
-                p[0] = Now()
-        
-        elif len(p) == 5:
-            if (p[1] == 'floor'):
-                p[0] = Floor(p[3])
-                
-            elif (p[1] == 'length'):
-                p[0] = Length(p[3])
-            
-            elif (p[1] == 'sum'):
-                p[0] = Sum(p[3])
-            
-            elif (p[1] == 'avg'):
-                p[0] = Avg(p[3])
-                
-            elif (p[1] == 'type'):
-                p[0] = Type(p[3])
-                
-            elif (p[1] == 'ltype'):
-                p[0] = Ltype(p[3])
-        
-        elif len(p) == 9:
-            if (p[1] == 'if'):
-                p[0] = Conditional(p[3], p[5], p[7])
-
-    def p_condicion(p):
-        '''
-        condicion : expresionLogica
-        '''
-        p[0] = p[1]
-        
-    def p_expT(p):
-        '''
-        expT : expresion
-        '''
-        p[0] = p[1]
-        
-    def p_expF(p):
-        '''
-        expF : expresion
-        '''
-        p[0] = p[1]
+        p[0] = Function(p[1], p[3])
 
     def p_error(p):
-        # print(f'Syntax error at {p.value!r}')
-        p[0] = f'Syntax error at {p.value!r}'
+        print(f'Syntax error at {p.value!r}')
+        # p[0] = f'Syntax error at {p}'
 
     # Retornamos el parser de yacc
-    # return yacc(), arrayErrores
     return yacc()
 
 parseador = ejecutamosParseador()
@@ -602,15 +529,9 @@ def parse(input: str):
 # Técnicamente, ast2str implementa una traducción. Para simplificar la 
 # traducción, y hacerla amigable, las expresiones deben ser regeneradas con 
 # paréntesis redundantes usando notación infija:
-def ast2str(ast) -> str:
+def ast2str(input: str, ast) -> str:
 
-    # if (len(arrayErrores) > 0):
-    #     return f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"
-
-    # else:
-    #     return f'OK: ast("{input}") ==> {ast}'
-
-    return(f'{ast}')
+    return f'OK: ast("{input}") ==> {ast}'
 
 # Funcion testParser:
 # Llama a parse y convierte el AST resultante en un string que puede ser 
@@ -627,7 +548,7 @@ def testParser(input: str) -> str:
     
     # astString = ast2str(input, ast, arrayErrores)
 
-    astString = ast2str(ast)
+    astString = ast2str(input, ast)
 
     return astString
 
@@ -655,11 +576,13 @@ def procesarDefinicion(instruccion: Definition, ts: TablaDeSimbolos) -> str:
         return f"ACK: {instruccion.type} {instruccion.id} := {instruccion.expression};"
 
 def procesarAsignacion(instruccion: Assignment, ts: TablaDeSimbolos) -> str:
-    # Se actualiza el simbolo en la tabla de simbolos
-    ts.actualizar_simbolo(instruccion)
-
-    return f"ACK: {instruccion.id} := {instruccion.expression};"
-
+    if ts.existe_simbolo_en_ts(instruccion.id):
+        # Se actualiza el simbolo en la tabla de simbolos
+        ts.actualizar_simbolo(instruccion)
+        return f"ACK: {instruccion.id} := {instruccion.expression};"
+    else:
+        return f"ERROR: identificador {instruccion.id} no definido"
+    
 def procesarOperacionBinaria(instruccion, ts):
     if isinstance(instruccion, BinOp) :
         expLeft = procesarOperacionBinaria(instruccion.left, ts)
@@ -682,7 +605,10 @@ def procesarOperacionBinaria(instruccion, ts):
     elif isinstance(instruccion, Boolean):
         return instruccion.value
     elif isinstance(instruccion, Identifier):
-        return ts.valor_simbolo(instruccion).value
+        if ts.existe_simbolo_en_ts(instruccion):
+            return ts.valor_simbolo(instruccion).value
+        else:
+            return f"ERROR: identificador {instruccion} no definido"
     elif isinstance(instruccion, UnaOp):
         return procesarOperacionUnaria(instruccion, ts)
     elif isinstance(instruccion, Grouped):
@@ -748,7 +674,7 @@ def procesarAgrupacion(instruccion, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion, Number):
         return instruccion.value
 
-def procesarArregloInstruccion(instruccion: ArrayInstruction, ts: TablaDeSimbolos) -> str:
+def procesarArregloInstruccion(instruccion: ArrayExpression, ts: TablaDeSimbolos) -> str:
     return instruccion
 
 def procesarBoolean(instruccion: Boolean, ts: TablaDeSimbolos) -> str:
@@ -761,11 +687,11 @@ def procesarConditional(instruccion: Conditional, ts):
     else:
         return procesarOperacionBinaria(instruccion.expF, ts)
 
-def procesarReset(instruccion: Reset, ts: TablaDeSimbolos) -> str:
-    hola = ts.limpiar_ts()
+# def procesarReset(instruccion: Reset, ts: TablaDeSimbolos) -> str:
+#     hola = ts.limpiar_ts()
 
-    if hola:
-        return "true"
+#     if hola:
+#         return "true"
 
 
 
@@ -789,18 +715,18 @@ def procesar_instruccion(input: str, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion, Identifier): return procesarIdentificador(instruccion, ts)
     elif isinstance(instruccion, UnaOp): return procesarOperacionUnaria(instruccion, ts)
     elif isinstance(instruccion, Grouped): return procesarAgrupacion(instruccion, ts)
-    elif isinstance(instruccion, ArrayInstruction): return procesarArregloInstruccion(instruccion, ts)
+    elif isinstance(instruccion, ArrayExpression): return procesarArregloInstruccion(instruccion, ts)
     elif isinstance(instruccion, Boolean): return procesarBoolean(instruccion, ts)
     elif isinstance(instruccion, Conditional): return procesarConditional(instruccion, ts)
-    elif isinstance(instruccion, Type): return procesarType(instruccion, ts)
-    elif isinstance(instruccion, Ltype): return procesarLtype(instruccion, ts)
-    elif isinstance(instruccion, Reset): return procesarReset(instruccion, ts)
-    elif isinstance(instruccion, Uniform): return procesarUniform(instruccion, ts)
-    elif isinstance(instruccion,Floor): return procesarFloor(instruccion, ts)
-    elif isinstance(instruccion,Length): return procesarLength(instruccion, ts)
-    elif isinstance(instruccion, Sum): return procesarSum(instruccion, ts)
-    elif isinstance(instruccion, Avg): return procesarAvg(instruccion, ts)
-    elif isinstance(instruccion, Pi): return procesarPi(instruccion, ts)
-    elif isinstance(instruccion, Now): return procesarNow(instruccion, ts)
+    # elif isinstance(instruccion, Type): return procesarType(instruccion, ts)
+    # elif isinstance(instruccion, Ltype): return procesarLtype(instruccion, ts)
+    # elif isinstance(instruccion, Reset): return procesarReset(instruccion, ts)
+    # elif isinstance(instruccion, Uniform): return procesarUniform(instruccion, ts)
+    # elif isinstance(instruccion,Floor): return procesarFloor(instruccion, ts)
+    # elif isinstance(instruccion,Length): return procesarLength(instruccion, ts)
+    # elif isinstance(instruccion, Sum): return procesarSum(instruccion, ts)
+    # elif isinstance(instruccion, Avg): return procesarAvg(instruccion, ts)
+    # elif isinstance(instruccion, Pi): return procesarPi(instruccion, ts)
+    # elif isinstance(instruccion, Now): return procesarNow(instruccion, ts)
     else : print('ERROR: instrucción no válida')
 

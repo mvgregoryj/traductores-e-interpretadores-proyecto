@@ -10,15 +10,12 @@
 <definicion> -> <tipo> <identificador> := <expresion> ;
 <asignacion> -> <identificador> := <expresion> ;
 
-<tipo>
-        -> <tipoBasico>
-        -> <tipoNoBasico>
+<tipo> -> <tipoBasico> 
+       -> [<tipo>]
 
-<tipoBasico>
+<tipoBasico> 
         -> num
         -> bool
-
-<tipoNoBasico> -> [<tipoBasico>]
 
 <expresion>
         -> <identificador>
@@ -26,7 +23,8 @@
         -> <booleano>
         -> (<expresion>)
         -> [<expresion>]
-        -> <identificador>[<number>]            <!-- Preguntar -->
+        -> <identificador>(<expresionLista>)          
+        -> <identificador>[<expresion>]          
         -> '<expresion>'
         -> <expresion>^<expresion>
         -> +<expresion>
@@ -71,97 +69,98 @@
           
 <instruccion> -> <definicion> | <asignacion>
 
-<definicion> -> <tipo> <identificador> := <expresion> ;
-<asignacion> -> <identificador> := <expresion> ;
+<definicion> -> <tipo> <identificador> TkAssign <expresion> TkSemicolon
+<asignacion> -> <identificador> TkAssign <expresion> TkSemicolon
 
-<tipo>
-        -> <tipoBasico>
-        -> <tipoNoBasico>
+<tipo> -> <tipoBasico> 
+       -> TkOpenBracket <tipo> TkCloseBracket
 
-<tipoBasico>
-        -> num
-        -> bool
-
-<tipoNoBasico>
-        -> [<tipoBasico>]
+<tipoBasico> 
+        -> TkNum
+        -> TkBool
 
 <expresion>
         -> <expresionAcotada>
         -> <expresionNormal>
 
 <expresionAcotada>
-        -> '<expresionNormal>'
+        -> TkSingleQuote <expresionNormal> TkSingleQuote
 
 <expresionNormal>
         -> <expresionNumerica>
         -> <expresionLogica>
         -> <expresionArreglo>
+        -> <expresionFunciones>
 
 <expresionNumerica>
         -> <numero>
         -> <identificador>
-        -> (<expresionNumerica>)
-        -> {<expresionNumerica>}
-        -> <expresionNumerica>^<expresionNumerica>
-        -> +<expresionNumerica>
-        -> -<expresionNumerica>
-        -> <expresionNumerica> * <expresionNumerica>
-        -> <expresionNumerica> / <expresionNumerica>
-        -> <expresionNumerica> % <expresionNumerica>
-        -> <expresionNumerica> + <expresionNumerica>
-        -> <expresionNumerica> - <expresionNumerica>
+        -> TkOpenPar <expresionNumerica> TkClosePar
+        -> TkOpenBrace <expresionNumerica> TkCloseBrace
+        -> <expresionNumerica> TkPower <expresionNumerica>
+        -> TkPlus <expresionNumerica>
+        -> TkMinus <expresionNumerica>
+        -> <expresionNumerica> TkMult <expresionNumerica>
+        -> <expresionNumerica> TkDiv <expresionNumerica>
+        -> <expresionNumerica> TkMod <expresionNumerica>
+        -> <expresionNumerica> TkPlus <expresionNumerica>
+        -> <expresionNumerica> TkMinus <expresionNumerica>
+
+<numero> -> TkNumber
+
+<identificador> -> TkId
 
 <expresionLogica>  
         -> <booleano>
         -> <identificador>
-        -> (<expresionLogica>)
-        -> {<expresionLogica>}
-        -> !<expresionLogica>
-        -> <expresionNumerica> < <expresionNumerica>
-        -> <expresionNumerica> <= <expresionNumerica>
-        -> <expresionNumerica> >= <expresionNumerica>
-        -> <expresionNumerica> > <expresionNumerica>
-        -> <expresionNumerica> = <expresionNumerica>
-        -> <expresionNumerica> <> <expresionNumerica>
-        -> <expresionLogica> = <expresionLogica>
-        -> <expresionLogica> <> <expresionLogica>
-        -> <expresionLogica> && <expresionLogica>
-        -> <expresionLogica> || <expresionLogica>   
+        -> TkOpenPar <expresionLogica> TkClosePar
+        -> TkOpenBrace <expresionLogica> TkCloseBrace
+        -> TkNot <expresionLogica>
+        -> <expresionNumerica> TkLT <expresionNumerica>
+        -> <expresionNumerica> TkLE <expresionNumerica>
+        -> <expresionNumerica> TkGE <expresionNumerica>
+        -> <expresionNumerica> TkGT <expresionNumerica>
+        -> <expresionNumerica> TkEQ <expresionNumerica>
+        -> <expresionNumerica> TkNE <expresionNumerica>
+        -> <expresionLogica> TkEQ <expresionLogica>
+        -> <expresionLogica> TkNE <expresionLogica>
+        -> <expresionLogica> TkAnd <expresionLogica>
+        -> <expresionLogica> TkOr <expresionLogica>   
 
 <booleano>
-        -> <true>
-        -> <false>
+        -> TkTrue
+        -> TkFalse
 
 <expresionArreglo>
-        -> [<expresionArregloLLamada>]
-        -> <expresionArregloInstruccion>
+        -> TkOpenBracket <expresionArgs> TkCloseBracket
+        -> <identificador> TkOpenBracket <expresionNumerica> TkCloseBracket
 
-<expresionArregloLLamada>
-        -> <expresionNormal> , <expresionArregloLLamada>
+<expresionArgs>
+        -> 
         -> <expresionNormal>  
-
-<expresionArregloInstruccion>
-        -> <identificador>[<expresionNumerica>]
+        -> <expresionNormal> , <expresionArgs>
 
 <funcion>
-        -> if(<condicion>, <expT>, <expF>)
-        -> type(<expresion>)
-        -> ltype(<expresion>)
-        -> reset()
-        -> uniform()
-        -> floor(<expresionNumerica>)
-        -> length(<expresionArreglo>)
-        -> sum(<expresionNumerica>)
-        -> avg(<expresionNumerica>)
-        -> pi()
-        -> now()
+        -> <identificador> TkOpenPar <expresionArgs> TkClosePar 
 
-<condicion>
-        -> <expresionLogica>
+        # -> if(<condicion>, <expT>, <expF>)
+        # -> type(<expresion>)
+        # -> ltype(<expresion>)
+        # -> reset()
+        # -> uniform()
+        # -> floor(<expresionNumerica>)
+        # -> length(<expresionArreglo>)
+        # -> sum(<expresionNumerica>)
+        # -> avg(<expresionNumerica>)
+        # -> pi()
+        # -> now()
 
-<expT>
-        -> <expresion>
+# <condicion>
+#         -> <expresionLogica>
 
-<expF>
-        -> <expresion>
+# <expT>
+#         -> <expresion>
+
+# <expF>
+#         -> <expresion>
 ```

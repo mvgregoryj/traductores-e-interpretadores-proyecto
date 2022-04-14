@@ -10,5 +10,9 @@
 .ast num x := 5;
 .ast y := 6;
 .ast 5*5/(5-(1+1))
+.ast x+y*z
+.ast x^y^z
+.ast (x+y
+.ast (x*(y+z)
 .failed
 .reset

@@ -101,7 +101,7 @@ class Grouped(Expr):
         else:
             return f"{self.left}{self.expression}{self.right}"
 
-class ArrayInstruction(Expr):
+class ArrayExpression(Expr):
     def __init__(self,id,expression):
         self.id = id
         self.expression = expression
@@ -109,6 +109,13 @@ class ArrayInstruction(Expr):
     def __repr__(self):
         return f"{self.id}[{self.expression}]"
     
+class Function(Expr):
+    def __init__(self,id,args):
+        self.id = id
+        self.args = args
+
+    def __repr__(self):
+         f"{self.id}({self.args})"
 
 class Conditional(Expr):
     def __init__(self, condicion, expT, expF):

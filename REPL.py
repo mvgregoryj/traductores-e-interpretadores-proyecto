@@ -107,17 +107,17 @@ if __name__ == '__main__':
         if data == '.':
             break
 
-        elif input == "":
+        elif data == "":
            mensajeVM = ""
 
-        elif input.startswith('.lex'):        
-            data, arrayTokens, arrayErrores = VM.lexTest(input)
+        elif data.startswith('.lex'):        
+            data, arrayTokens, arrayErrores = VM.lexTest(data)
             mensajeVM = mensajeLexer(data, arrayTokens, arrayErrores)
 
         elif data.startswith('.load'):
             mensajeVM = VM.load(data, arrayTuplas)
 
-        elif input.startswith('.failed'):
+        elif data.startswith('.failed'):
             mensajeVM = failed(arrayTuplas)
 
         elif data.startswith('.reset'):
