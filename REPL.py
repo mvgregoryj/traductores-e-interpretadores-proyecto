@@ -108,7 +108,7 @@ if __name__ == '__main__':
             break
 
         elif data == "":
-           mensajeVM = ""
+               mensajeVM = ""
 
         elif data.startswith('.lex'):        
             data, arrayTokens, arrayErrores = VM.lexTest(data)

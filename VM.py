@@ -508,8 +508,14 @@ def ejecutamosParseador():
         p[0] = Function(p[1], p[3])
 
     def p_error(p):
-        print(f'Syntax error at {p.value!r}')
+        # print(f'Syntax error at {p.value!r}')
         # p[0] = f'Syntax error at {p}'
+        if p == None:
+            token = 'EOF'
+        else:
+            token = f"{p.type}({p.value}) at line {p.lineno}"
+            
+        print(f"Syntax error at {token}")
 
     # Retornamos el parser de yacc
     return yacc()
@@ -543,10 +549,6 @@ def testParser(input: str) -> str:
 
     # Llamamos a parser con el input ingresado por el usuario
     ast = parse(input)
-
-    # ast, arrayErrores = parse(input)
-    
-    # astString = ast2str(input, ast, arrayErrores)
 
     astString = ast2str(input, ast)
 
