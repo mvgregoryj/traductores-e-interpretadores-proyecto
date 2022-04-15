@@ -14,5 +14,6 @@
 .ast x^y^z
 .ast (x+y
 .ast (x*(y+z)
+.ast (x*y*(
 .failed
 .reset

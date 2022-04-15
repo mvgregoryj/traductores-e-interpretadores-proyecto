@@ -43,7 +43,7 @@ def load (data: str, arrayTuplas: list) -> str:
             # Archivo contiene .lex en la linea numline
             if data.startswith('.lex'):
                 data, arrayTokens, arrayErrores = VM.lexTest(data)
-                mensaje = VM.mensajeLexer(data, arrayTokens, arrayErrores)
+                mensaje = mensajeLexer(data, arrayTokens, arrayErrores)
                 mensajeLoad = mensajeLoad + f"{mensaje}\n"
 
                 # Si la respuesta da ERROR se guarda el nombre del archivo, la linea y el mensaje en una lista de tuplas
@@ -67,7 +67,10 @@ def load (data: str, arrayTuplas: list) -> str:
             elif data.startswith('.ast'):
                 mensaje = VM.testParser(data)
                 mensajeLoad = mensajeLoad + f"{mensaje}\n"
-            
+                
+                if mensaje.startswith('Syntax error:'):
+                    arrayTuplas.append((nombreArchivo, numline, mensaje))
+                
             # Si no se ingresa alguno de los comandos especificados se devuelve ERROR
             elif not data.startswith('.lex') or not data.startswith('.load') or not data.startswith('.failed') or not data.startswith('.reset') or not data.startswith('.ast'):
                 arrayTuplas.append((nombreArchivo, numline, f"ERROR: interpretación no implementada"))
@@ -115,7 +118,7 @@ if __name__ == '__main__':
             mensajeVM = mensajeLexer(data, arrayTokens, arrayErrores)
 
         elif data.startswith('.load'):
-            mensajeVM = VM.load(data, arrayTuplas)
+            mensajeVM = load(data, arrayTuplas)
 
         elif data.startswith('.failed'):
             mensajeVM = failed(arrayTuplas)
