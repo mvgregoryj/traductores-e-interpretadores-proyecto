@@ -6,6 +6,7 @@ Grupo Dacary:
 '''
 
 #import ply.lex as lex
+from array import array
 from ast import Expression
 from ply.lex import lex
 from ply.yacc import yacc
@@ -15,6 +16,7 @@ import math
 import time
 
 ts_global = TablaDeSimbolos()
+arr = []
 
 # Process
 def process (input: str) -> str:
@@ -307,7 +309,9 @@ def now():
 def ejecutamosParseador():
     # Construimos el objecto lexer y el arreglo de errores
     tokens, lexer, arrayErrores = ejecutarLexer()
-
+    
+    global arr
+    
     # # Entrada para el lexer
     # lexer.input(input)
 
@@ -479,15 +483,14 @@ def ejecutamosParseador():
         p[0] = Function(p[1], p[3])
 
     def p_error(p):
-        # print(f'Syntax error at {p.value!r}')
-        # p[0] = f'Syntax error at {p}'
+        
         if p == None:
-            token = 'EOF'
+            token = 'Unexpected end of input'
         else:
             token = f"{p.type}({p.value}) at line {p.lineno}"
             
-        print(f"Syntax error at {token}")
-
+        arr.append(token)               
+                        
     # Retornamos el parser de yacc
     return yacc()
 
@@ -507,23 +510,30 @@ def parse(input: str):
 # traducción, y hacerla amigable, las expresiones deben ser regeneradas con 
 # paréntesis redundantes usando notación infija:
 def ast2str(input: str, ast) -> str:
-
+    
     return f'OK: ast("{input}") ==> {ast}'
 
 # Funcion testParser:
 # Llama a parse y convierte el AST resultante en un string que puede ser 
 # consumido por el REPL
 def testParser(input: str) -> str:
-
+    
+    global arr
+    
     # Eliminamos los espacios antes y despues de la expresión
     input = input[4:].strip()
 
+    # Colocamos el arreglo vacio
+    arr = []
+    
     # Llamamos a parser con el input ingresado por el usuario
     ast = parse(input)
 
-    astString = ast2str(input, ast)
-
-    return astString
+    if len(arr) == 0:
+        astString = ast2str(input, ast)
+        return astString
+    else:
+        return f"Syntax error: {arr[0]}"
 
 #########################################################
 
