@@ -389,27 +389,30 @@ def ejecutamosParseador():
     
     def p_expresionNormal(p):
         '''
-        expresionNormal : expresionNumerica
-                        | expresionLogica
+        expresionNormal : numero 
+                        | identificador
+                        | TkOpenPar expresionNormal TkClosePar
+                        | TkOpenBrace expresionNormal TkCloseBrace
+                        | expresionNormal TkPower expresionNormal
+                        | TkPlus expresionNormal %prec TkUPlus
+                        | TkMinus expresionNormal %prec TkUMinus
+                        | expresionNormal TkMult expresionNormal
+                        | expresionNormal TkDiv expresionNormal
+                        | expresionNormal TkMod expresionNormal
+                        | expresionNormal TkPlus expresionNormal
+                        | expresionNormal TkMinus expresionNormal
+                        | booleano
+                        | TkNot expresionNormal
+                        | expresionNormal TkLT expresionNormal
+                        | expresionNormal TkLE expresionNormal
+                        | expresionNormal TkGE expresionNormal
+                        | expresionNormal TkGT expresionNormal
+                        | expresionNormal TkEQ expresionNormal
+                        | expresionNormal TkNE expresionNormal
+                        | expresionNormal TkAnd expresionNormal
+                        | expresionNormal TkOr expresionNormal   
                         | expresionArreglo
                         | expresionFunciones
-        '''
-        p[0] = p[1]
-    
-    def p_expresionNumerica(p):
-        '''
-        expresionNumerica : numero 
-                          | identificador
-                          | TkOpenPar expresionNumerica TkClosePar
-                          | TkOpenBrace expresionNumerica TkCloseBrace
-                          | expresionNumerica TkPower expresionNumerica
-                          | TkPlus expresionNumerica %prec TkUPlus
-                          | TkMinus expresionNumerica %prec TkUMinus
-                          | expresionNumerica TkMult expresionNumerica
-                          | expresionNumerica TkDiv expresionNumerica
-                          | expresionNumerica TkMod expresionNumerica
-                          | expresionNumerica TkPlus expresionNumerica
-                          | expresionNumerica TkMinus expresionNumerica
         '''
         if len(p) == 2:
             p[0] = p[1]
@@ -436,39 +439,7 @@ def ejecutamosParseador():
         identificador : TkId
         '''
         p[0] = Identifier(p[1])
-    
-    def p_expresionLogica(p):
-        '''
-        expresionLogica : booleano
-                        | identificador
-                        | TkOpenPar expresionLogica TkClosePar
-                        | TkOpenBrace expresionLogica TkCloseBrace
-                        | TkNot expresionLogica
-                        | expresionNumerica TkLT expresionNumerica
-                        | expresionNumerica TkLE expresionNumerica
-                        | expresionNumerica TkGE expresionNumerica
-                        | expresionNumerica TkGT expresionNumerica
-                        | expresionNumerica TkEQ expresionNumerica
-                        | expresionNumerica TkNE expresionNumerica
-                        | expresionLogica TkEQ expresionLogica
-                        | expresionLogica TkNE expresionLogica
-                        | expresionLogica TkAnd expresionLogica
-                        | expresionLogica TkOr expresionLogica   
-        '''
-        if len(p) == 2:
-            p[0] = p[1]
-
-        elif len(p) == 3:
-            p[0] = UnaOp(p[1], p[2])
-
-        elif len(p) == 4:
-            if (p[1]=='(' and p[3]==')'):
-                p[0] = Grouped("Par", p[1], p[2], p[3])
-            elif  (p[1]=='{' and p[3]=='}'):
-                p[0] = Grouped("Brace", p[1], p[2], p[3])
-            else:
-                p[0] = BinOp(p[1], p[2], p[3])
-    
+        
     def p_booleano(p):
         '''
         booleano : TkTrue
@@ -479,7 +450,7 @@ def ejecutamosParseador():
     def p_expresionArreglo(p):
         '''
         expresionArreglo : TkOpenBracket expresionArgs TkCloseBracket
-                         | identificador TkOpenBracket expresionNumerica TkCloseBracket
+                         | identificador TkOpenBracket expresionNormal TkCloseBracket
         '''
         if len(p) == 4:
             if (p[1]=='[' and p[3]==']'):
@@ -568,7 +539,7 @@ def procesarDefinicion(instruccion: Definition, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion.expression, UnaOp):
         pass
     elif isinstance(instruccion.expression, Grouped):
-        pass
+        return procesarAgrupacion(instruccion.expression, ts)
     elif isinstance(instruccion.expression, Identifier):
         pass
     elif isinstance(instruccion.expression, Number):     
@@ -642,36 +613,49 @@ def procesarOperacionUnaria(instruccion, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion, Boolean):
         return instruccion.value
 
-def procesarAgrupacion(instruccion, ts: TablaDeSimbolos) -> str:
+    elif isinstance(instruccion, Grouped):
+        return procesarAgrupacion(instruccion, ts)
 
-    if isinstance(instruccion, Grouped):
-        if instruccion.type == "Par":
-            if isinstance(instruccion.expression, Grouped):          
-                return procesarAgrupacion(instruccion.expression, ts)
-            elif isinstance(instruccion.expression, BinOp):
-                return procesarOperacionBinaria(instruccion.expression, ts)
-            elif isinstance(instruccion.expression, Number):
-                return instruccion.expression.value
-            elif isinstance(instruccion.expression, Boolean):
-                return f"{instruccion.expression.value}".lower()
-            elif isinstance(instruccion.expression, Identifier):
-                return ts.valor_simbolo(instruccion.expression)
-            elif isinstance(instruccion.expression, UnaOp):
-                return procesarOperacionUnaria(instruccion.expression, ts)
+def procesarAgrupacion(instruccion, ts) -> str:
+    if isinstance(instruccion, Grouped) & instruccion.type == "Par":
+        exp = procesarAgrupacion(instruccion.expression, ts)
+        return exp
+    elif isinstance(instruccion, Grouped) & instruccion.type == "Bracket":
+        instruccion = instruccion.expression
+        arregloTemp = []
+        if isinstance(instruccion, BinOp) & instruccion.op == ",":
+            arregloTemp.append(instruccion.left)
+
+    elif isinstance(instruccion, BinOp):
+        return procesarOperacionBinaria(instruccion, ts)
+    elif isinstance(instruccion, Number):
+        return instruccion.value
+    elif isinstance(instruccion, Boolean):
+        return f"{instruccion.value}".lower()
+    elif isinstance(instruccion, Identifier):
+        return ts.valor_simbolo(instruccion)
+    elif isinstance(instruccion, UnaOp):
+        return procesarOperacionUnaria(instruccion, ts)
             
-        elif instruccion.type == "SingleQuote":
-            if isinstance(instruccion.expression, Grouped):
-                return instruccion.expression
-            elif isinstance(instruccion.expression, BinOp):
-                return f"{instruccion.expression.left} {instruccion.expression.op} {instruccion.expression.right}"
-            elif isinstance(instruccion.expression, Number):
-                return instruccion.expression.value
-            elif isinstance(instruccion.expression, Boolean):
-                return f"{instruccion.expression.value}".lower()
-            elif isinstance(instruccion.expression, Identifier):
-                return instruccion.expression.value
-            elif isinstance(instruccion.expression, UnaOp):
-                return f"{instruccion.expression.op}{instruccion.expression.right}"
+        # elif instruccion.type == "SingleQuote":
+        #     if isinstance(instruccion.expression, Grouped):
+        #         return instruccion.expression
+        #     elif isinstance(instruccion.expression, BinOp):
+        #         return f"{instruccion.expression.left} {instruccion.expression.op} {instruccion.expression.right}"
+        #     elif isinstance(instruccion.expression, Number):
+        #         return instruccion.expression.value
+        #     elif isinstance(instruccion.expression, Boolean):
+        #         return f"{instruccion.expression.value}".lower()
+        #     elif isinstance(instruccion.expression, Identifier):
+        #         return instruccion.expression.value
+        #     elif isinstance(instruccion.expression, UnaOp):
+        #         return f"{instruccion.expression.op}{instruccion.expression.right}"
+
+        # elif instruccion.type == "Bracket":
+        #     if isinstance(instruccion.expression, BinOp):
+        #         operador = instruccion.expression.op
+        #         if operador == ",":
+
 
     elif isinstance(instruccion, Number):
         return instruccion.value
@@ -704,10 +688,9 @@ def procesar_instruccion(input: str, ts: TablaDeSimbolos) -> str:
 
     # Llamamos a parser con el input ingresado por el usuario
     instruccion = parse(input)
-    # print(type(instruccion))
+    print(type(instruccion))
 
-    # print(type(instruccion))
-    # print(type(instruccion.expression))
+    print(type(instruccion.expression))
 
     # Si la instruccion es una declaracion de variable
     if isinstance(instruccion, Definition): return procesarDefinicion(instruccion, ts)
@@ -719,7 +702,7 @@ def procesar_instruccion(input: str, ts: TablaDeSimbolos) -> str:
     elif isinstance(instruccion, Grouped): return procesarAgrupacion(instruccion, ts)
     elif isinstance(instruccion, ArrayExpression): return procesarArregloInstruccion(instruccion, ts)
     elif isinstance(instruccion, Boolean): return procesarBoolean(instruccion, ts)
-    elif isinstance(instruccion, Conditional): return procesarConditional(instruccion, ts)
+    # elif isinstance(instruccion, Conditional): return procesarConditional(instruccion, ts)
     # elif isinstance(instruccion, Type): return procesarType(instruccion, ts)
     # elif isinstance(instruccion, Ltype): return procesarLtype(instruccion, ts)
     # elif isinstance(instruccion, Reset): return procesarReset(instruccion, ts)
