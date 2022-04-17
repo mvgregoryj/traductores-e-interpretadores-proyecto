@@ -102,12 +102,12 @@ class Grouped(Expr):
             return f"{self.left}{self.expression}{self.right}"
 
 class ArrayExpression(Expr):
-    def __init__(self,id,expression):
+    def __init__(self,id,index):
         self.id = id
-        self.expression = expression
+        self.index = index
 
     def __repr__(self):
-        return f"{self.id}[{self.expression}]"
+        return f"{self.id}[{self.index}]"
     
 class Function(Expr):
     def __init__(self,id,args):

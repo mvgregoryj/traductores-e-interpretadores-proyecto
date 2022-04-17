@@ -129,6 +129,9 @@ if __name__ == '__main__':
         elif data.startswith('.ast'):
             mensajeVM = VM.testParser(data)
 
+        elif data == ".ts":
+            mensajeVM = f"Tabla de Simbolos = {VM.ts_global}"
+
         else:
             mensajeVM = VM.process(data)
             
