@@ -60,15 +60,16 @@ class Number(Expr):
         #return f"Number({self.value})"
 
 class Boolean(Expr):
-    def __init__(self,value):
+    def __init__(self,str_value,value=None):
         self.type = "bool"
-        if value == "true":
+        self.str_value = str_value
+        if str_value == "true":
             self.value = True
-        elif value == "false":
+        elif str_value == "false":
             self.value = False
 
     def __repr__(self):
-        return f"{self.value}".lower()
+        return f"{self.str_value}"
         #return f"Booleano({self.value})"
 
 class Identifier(Expr):

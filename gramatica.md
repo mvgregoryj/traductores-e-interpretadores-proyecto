@@ -41,7 +41,8 @@
         -> <expresion> && <expresion>
         -> <expresion> || <expresion> 
         -> [<expresion>]
-        -> <identificador>[<expresion>]          
+        -> <identificador>[<expresion>]       
+        #(acomodar para <expresion>[<expresion>])   
         -> <expresion> , <expresion>
         -> <identificador>(<expresion>)     
         -> '<expresion>'
@@ -131,7 +132,8 @@
         -> <expresionNormal> , <expresionArgs>
 
 <expresionFunciones>
-        -> <identificador> TkOpenPar <expresionArgs> TkClosePar 
+        -> <identificador> TkOpenPar <expresionArgs> TkClosePar           
+        #(acomodar para <expresion> TkOpenPar <expresionArgs> TkClosePar)
 
         # -> if(<condicion>, <expT>, <expF>)
         # -> type(<expresion>)

@@ -8,6 +8,7 @@ Grupo Dacary:
 #import ply.lex as lex
 from array import array
 from ast import Expression
+from cmath import exp
 from ply.lex import lex
 from ply.yacc import yacc
 from Objetos import *
@@ -538,43 +539,73 @@ def testParser(input: str) -> str:
 #########################################################
 
 def procesarDefinicion(data, instruccion: Definition, ts: TablaDeSimbolos) -> str:
-    if isinstance(instruccion.expression, BinOp):
-        resultado = procesarOperacionBinaria(data, instruccion.expression, ts)
-        
-        # Se actualiza el simbolo en la tabla de simbolos
-        ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, resultado))
+    if ts.existe_simbolo_en_ts(instruccion.id):
+        return f"ERROR: identificador {instruccion.id} ya está definido"
+    else:
+        if isinstance(instruccion.expression, BinOp):
+            resultado = procesarOperacionBinaria(data, instruccion.expression, ts)
+            
+            # Si resultado es un ERROR no se agrega a la tabla de simbolos.
+            if f"{resultado}".startswith("ERROR"):
+                return resultado
+            else:
+                # Se actualiza el simbolo en la tabla de simbolos
+                ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, Number(resultado)))
 
-        return f"ACK: {instruccion.type} {instruccion.id} := {resultado};"
+                return f"ACK: {instruccion.type} {instruccion.id} := {resultado};"
 
-    elif isinstance(instruccion.expression, UnaOp):
-        pass
+        elif isinstance(instruccion.expression, UnaOp):
+            resultado = procesarOperacionUnaria(data, instruccion.expression, ts)
 
-    elif isinstance(instruccion.expression, Grouped):
-        expresion = procesarAgrupacion(data, instruccion.expression, ts)
+            # Si resultado es un ERROR no se agrega a la tabla de simbolos.
+            if f"{resultado}".startswith("ERROR"):
+                return resultado
+            else:
+                # Se actualiza el simbolo en la tabla de simbolos
+                ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, Number(resultado)))
 
-        # Se agrega el simbolo a la tabla de simbolos
-        ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, expresion))
+                return f"ACK: {instruccion.type} {instruccion.id} := {resultado};"
 
-        return f"ACK: {instruccion.type} {instruccion.id} := {expresion};"
+        elif isinstance(instruccion.expression, Grouped):
+            expresion = procesarAgrupacion(data, instruccion.expression, ts)
+            
+            # Si expresion es un ERROR no se agrega a la tabla de simbolos.
+            if f"{expresion}".startswith("ERROR"):
+                return expresion
+            else:
+                # Se agrega el simbolo a la tabla de simbolos
+                ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, expresion))
 
-    elif isinstance(instruccion.expression, Identifier):
-        ts.agregar_simbolo(instruccion)
+                # Se verifican el tipo de elementos del arreglo expresion
+                if isinstance(expresion[0], bool):
+                    expresion_str = list(map(lambda ele: f"{ele == True}".lower(), expresion))
+                    return f"ACK: {instruccion.type} {instruccion.id} := {expresion_str};"
 
-        return f"ACK: {instruccion.type} {instruccion.id} := {instruccion.expression};"
-    elif isinstance(instruccion.expression, Number):     
-        # Se agrega el simbolo a la tabla de simbolos
-        ts.agregar_simbolo(instruccion)
+                # elif isinstance(expresion[0], int):
+                else:
+                    return f"ACK: {instruccion.type} {instruccion.id} := {expresion};"
+        elif isinstance(instruccion.expression, Identifier):
+            if ts.existe_simbolo_en_ts(instruccion.expression):
+                simbolo = ts.valor_simbolo(instruccion.expression)
 
-        return f"ACK: {instruccion.type} {instruccion.id} := {instruccion.expression};"
+                ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, simbolo))
+                return f"ACK: {instruccion.type} {instruccion.id} := {simbolo};"
 
-    elif isinstance(instruccion.expression, Boolean):
-        valor = f"{instruccion.expression.value}".lower()
+            else:
+                return f"ERROR: identificador {instruccion.expression} no está definido"
+        elif isinstance(instruccion.expression, Number):     
+            # Se agrega el simbolo a la tabla de simbolos
+            ts.agregar_simbolo(instruccion)
+            # Definition(instruccion.type, instruccion.id, instruccion.expression.value)
 
-        # Se agrega el simbolo a la tabla de simbolos
-        ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, valor))
+            return f"ACK: {instruccion.type} {instruccion.id} := {instruccion.expression};"
+        elif isinstance(instruccion.expression, Boolean):
+            valor = instruccion.expression
 
-        return f"ACK: {instruccion.type} {instruccion.id} := {valor};"
+            # Se agrega el simbolo a la tabla de simbolos
+            ts.agregar_simbolo(instruccion)
 
+            return f"ACK: {instruccion.type} {instruccion.id} := {valor.str_value};"
 
 def procesarAsignacion(data, instruccion: Assignment, ts: TablaDeSimbolos) -> str:
     if ts.existe_simbolo_en_ts(instruccion.id):
@@ -588,54 +619,62 @@ def procesarOperacionBinaria(data, instruccion, ts):
     if isinstance(instruccion, BinOp) :
         expLeft = procesarOperacionBinaria(data, instruccion.left, ts)
         expRight = procesarOperacionBinaria(data, instruccion.right, ts)
-        if instruccion.op == "^" : respuesta = expLeft ** expRight
-        if instruccion.op == "*" : respuesta = expLeft * expRight
-        if instruccion.op == "/" : respuesta = expLeft // expRight
-        if instruccion.op == "+" : respuesta = expLeft + expRight
-        if instruccion.op == "-" : respuesta = expLeft - expRight
-        if instruccion.op == "<" : respuesta = f"{expLeft < expRight}".lower()
-        if instruccion.op == "<=" : respuesta = f"{expLeft <= expRight}".lower()
-        if instruccion.op == ">=" : respuesta = f"{expLeft >= expRight}".lower()
-        if instruccion.op == ">" : respuesta = f"{expLeft > expRight}".lower()
-        if instruccion.op == "=" : respuesta = f"{expLeft == expRight}".lower()
-        if instruccion.op == "<>" : respuesta = f"{expLeft != expRight}".lower()
-        if instruccion.op == "&&" : respuesta = f"{expLeft & expRight}".lower()
-        if instruccion.op == "||" : respuesta = f"{expLeft | expRight}".lower()
+
+        # Se verifica que la operacion sea valida
+        if isinstance(expLeft, str) & isinstance(expRight, str):
+            if expLeft.startswith("ERROR") & expRight.startswith("ERROR"):
+                return f"{expLeft}\n{expRight}"
+        elif isinstance(expLeft, str):
+            if expLeft.startswith("ERROR"):
+                return expLeft
+        elif isinstance(expRight, str):
+            if expRight.startswith("ERROR"):
+                return expRight
+        else:
+            if instruccion.op == "^" : respuesta = expLeft ** expRight
+            elif instruccion.op == "*" : respuesta = expLeft * expRight
+            elif instruccion.op == "/" : respuesta = expLeft // expRight
+            elif instruccion.op == "%" : respuesta = expLeft % expRight
+            elif instruccion.op == "+" : respuesta = expLeft + expRight
+            elif instruccion.op == "-" : respuesta = expLeft - expRight
+            elif instruccion.op == "<" : respuesta = expLeft < expRight
+            elif instruccion.op == "<=" : respuesta = expLeft <= expRight
+            elif instruccion.op == ">=" : respuesta = expLeft >= expRight
+            elif instruccion.op == ">" : respuesta = expLeft > expRight
+            elif instruccion.op == "=" : respuesta = expLeft == expRight
+            elif instruccion.op == "<>" : respuesta = expLeft != expRight
+            elif instruccion.op == "&&" : respuesta = expLeft & expRight
+            elif instruccion.op == "||" : respuesta = expLeft | expRight
     
-        return f"OK: {data} ==> {respuesta}"
+            return respuesta
 
     elif isinstance(instruccion, Number):
-        return instruccion.value
+        return procesarNumero(data, instruccion, ts)
     elif isinstance(instruccion, Boolean):
-        return instruccion.value
+        return procesarBoolean(data, instruccion, ts)
     elif isinstance(instruccion, Identifier):
-        if ts.existe_simbolo_en_ts(instruccion):
-            return ts.valor_simbolo(instruccion).value
-        else:
-            return f"ERROR: identificador {instruccion} no definido"
+        return procesarIdentificador(data, instruccion, ts)
     elif isinstance(instruccion, UnaOp):
         return procesarOperacionUnaria(data, instruccion, ts)
     elif isinstance(instruccion, Grouped):
-        return procesarAgrupacion(data, instruccion.expression, ts)
+        return procesarAgrupacion(data, instruccion, ts)
     elif isinstance(instruccion, ArrayExpression):
-        # Verifiquemos que el identificador exista en la tabla de simbolos
-        if ts.existe_simbolo_en_ts(instruccion.id):
-            definicionArreglo = ts.obtener_simbolo(instruccion.id)
-            arreglo = definicionArreglo.expression
-            try:
-                resultado = arreglo[instruccion.index.value]
-                return resultado
-            except IndexError:
-                return f"ERROR: indice fuera de rango"
+        return procesarArregloInstruccion(data, instruccion, ts)
+    else: 
+        return f"ERROR: instrucción no válida."
 
 def procesarNumero(data, instruccion: Number, ts: TablaDeSimbolos) -> str:
     return instruccion.value
 
-def procesarIdentificador(data, instruccion: Identifier, ts: TablaDeSimbolos) -> str:
+def procesarIdentificador(data, instruccion: Identifier, ts: TablaDeSimbolos) -> int or bool:
     # Verifiquemos que el identificador exista en la tabla de simbolos
     if ts.existe_simbolo_en_ts(instruccion):
         valorEncontrado = ts.obtener_simbolo(instruccion)
-        return f"OK: {instruccion.value} ==> {valorEncontrado.expression};"
+
+        if isinstance(valorEncontrado.expression, Number) or isinstance(valorEncontrado.expression, Boolean):
+            return valorEncontrado.expression.value
+        elif isinstance(valorEncontrado.expression, list):
+            return valorEncontrado.expression
     else:
         return f"ERROR: identificador {instruccion.value} no definido"
 
@@ -647,57 +686,162 @@ def procesarOperacionUnaria(data, instruccion, ts: TablaDeSimbolos) -> str:
         if instruccion.op == "!" : return not exp
 
     elif isinstance(instruccion, Number):
-        return  instruccion.value
-            
-    elif isinstance(instruccion, Identifier):
-        return ts.valor_simbolo(instruccion)
-
+        return procesarNumero(data, instruccion, ts)
     elif isinstance(instruccion, Boolean):
-        return instruccion.value
-
+        return procesarBoolean(data, instruccion, ts)
+    elif isinstance(instruccion, Identifier):
+        return procesarIdentificador(data, instruccion, ts)
     elif isinstance(instruccion, Grouped):
         return procesarAgrupacion(data, instruccion, ts)
 
 def procesarAgrupacion(data, instruccion, ts) -> str:
     
     if isinstance(instruccion, Grouped) & (instruccion.type == "Par"):
-        exp = procesarAgrupacion(data, instruccion.expression, ts)
-        return exp
+            exp = procesarAgrupacion(data, instruccion.expression, ts)
+            return exp
+
+    elif isinstance(instruccion, Grouped) & (instruccion.type == "Brace"):
+            exp = procesarAgrupacion(data, instruccion.expression, ts)
+            return exp
+
+    elif isinstance(instruccion, Grouped) & (instruccion.type == "SingleQuote"):
+            print("SingleQuote")
+            #TODO
+            pass
 
     elif isinstance(instruccion, Grouped) & (instruccion.type == "Bracket"):
-        instruccion = instruccion.expression
-        arregloTemp = []
+            instruccion = instruccion.expression
+            arregloTemp = []
 
-        # Caso de que el arreglo tiene mas de un elemento
-        if isinstance(instruccion, BinOp) & (instruccion.op == ","):
+            # Casos en el que el arreglo tiene un solo elemento
+            if isinstance(instruccion, Number) | isinstance(instruccion, Identifier) | isinstance(instruccion, Boolean):
+                respuesta = instruccion.value
 
-            # Se obtiene el primer elemento del arreglo
-            izquierda = instruccion.left
-            if isinstance(izquierda, Number) | isinstance(izquierda, Identifier) | isinstance(izquierda, Boolean):
-                arregloTemp.append(izquierda.value)
+                # Si el unico elemento es un ERROR, se retorna el error.
+                if f"{respuesta}".startswith("ERROR"):
+                    return respuesta
+                else:
+                    arregloTemp.append(respuesta)
+
+            elif isinstance(instruccion, UnaOp):
+                respuesta = procesarOperacionUnaria(data, instruccion, ts)
+                
+                # Si el unico elemento es un ERROR, se retorna el error.
+                if f"{respuesta}".startswith("ERROR"):
+                    return respuesta
+                else:
+                    arregloTemp.append(respuesta)
+
+            elif isinstance(instruccion, ArrayExpression):
+                respuesta = procesarArregloInstruccion(data, instruccion, ts)
+                
+                # Si el unico elemento es un ERROR, se retorna el error.
+                if f"{respuesta}".startswith("ERROR"):
+                    return respuesta
+                else:
+                    arregloTemp.append(respuesta)
+                
+            elif isinstance(instruccion, Grouped):
+                respuesta = procesarAgrupacion(data, instruccion, ts)
+                
+                # Si el unico elemento es un ERROR, se retorna el error.
+                if f"{respuesta}".startswith("ERROR"):
+                    return respuesta
+                else:
+                    arregloTemp.append(respuesta)
+                
+            elif isinstance(instruccion, BinOp) & (instruccion.op in "^*/%+-<<=>=>=<>&&||"):
+                respuesta = procesarOperacionBinaria(data, instruccion, ts)
+                
+                # Si el unico elemento es un ERROR, se retorna el error.
+                if f"{respuesta}".startswith("ERROR"):
+                    return respuesta
+                else:
+                    arregloTemp.append(respuesta)
             
-            # Se obtienen los elementos del medio del arreglo, si los hay
-            derecha = instruccion.right
-            while isinstance(derecha, BinOp):
-                if (derecha.op == ","):
-                    izquierda = derecha.left
-                    if isinstance(izquierda, Number) | isinstance(izquierda, Identifier) | isinstance(izquierda, Boolean):
-                        arregloTemp.append(izquierda.value)
-                    derecha = derecha.right
+            # Caso de que el arreglo tiene mas de un elemento
+            elif isinstance(instruccion, BinOp) & (instruccion.op == ","):
+                # print(arregloTemp)
 
-            # Se obtiene el ultimo elemento del arreglo
-            if isinstance(derecha, Number) | isinstance(derecha, Identifier) | isinstance(derecha, Boolean):
-                arregloTemp.append(derecha.value)
+                # Se obtiene el primer elemento del arreglo
+                izquierda = instruccion.left
+                if isinstance(izquierda, Number) | isinstance(izquierda, Identifier) | isinstance(izquierda, Boolean):
+                    respuesta = izquierda.value
+                elif isinstance(izquierda, UnaOp):
+                    respuesta = procesarOperacionUnaria(data, izquierda, ts)
+                elif isinstance(izquierda, ArrayExpression):
+                    respuesta = procesarArregloInstruccion(data, izquierda, ts)
+                elif isinstance(izquierda, Grouped):
+                    respuesta = procesarAgrupacion(data, izquierda, ts)
+                elif isinstance(izquierda, BinOp) & (izquierda.op in "^*/%+-<<=>=>=<>&&||"):
+                    respuesta = procesarOperacionBinaria(data, izquierda, ts)
+                
+                # Si el primer elemento es un ERROR, se retorna el error, si no se continua con el procesamiento
+                if f"{respuesta}".startswith("ERROR"):
+                    return respuesta
+                else:
+                    arregloTemp.append(respuesta)
+                
+                # Se obtienen los elementos del medio del arreglo, si los hay
+                derecha = instruccion.right
+                while isinstance(derecha, BinOp):
+                    if (derecha.op == ","):
+                        # print(arregloTemp)
+                        izquierda = derecha.left
+                        if isinstance(izquierda, Number) | isinstance(izquierda, Identifier) | isinstance(izquierda, Boolean):
+                            respuesta = izquierda.value
+                        elif isinstance(izquierda, UnaOp):
+                            respuesta = procesarOperacionUnaria(data, izquierda, ts)
+                        elif isinstance(izquierda, ArrayExpression):
+                            respuesta = procesarArregloInstruccion(data, izquierda, ts)
+                        elif isinstance(izquierda, Grouped):
+                            respuesta = procesarAgrupacion(data, izquierda, ts)
+                        elif isinstance(izquierda, BinOp) & (izquierda.op in "^*/%+-<<=>=>=<>&&||"):
+                            respuesta = procesarOperacionBinaria(data, izquierda, ts)
+
+                        # Si el elemento es un ERROR, se retorna el error, si no se continua con el procesamiento
+                        if f"{respuesta}".startswith("ERROR"):
+                            return respuesta
+                        else:
+                            arregloTemp.append(respuesta)
+
+                        derecha = derecha.right
+
+                    else:
+                        break
+
+                # Se obtiene el ultimo elemento del arreglo
+                # print(arregloTemp)
+                if isinstance(derecha, Number) | isinstance(derecha, Identifier) | isinstance(derecha, Boolean):
+                    respuesta = derecha.value
+                elif isinstance(derecha, UnaOp):
+                    respuesta = procesarOperacionUnaria(data, derecha, ts)
+                elif isinstance(derecha, ArrayExpression):
+                    respuesta = procesarArregloInstruccion(data, derecha, ts)
+                elif isinstance(derecha, Grouped):
+                    respuesta = procesarAgrupacion(data, derecha, ts)
+                elif isinstance(derecha, BinOp) & (derecha.op in "^*/%+-<<=>=>=<>&&||"):
+                    respuesta = procesarOperacionBinaria(data, derecha, ts)
+                    
+                # Si el ultimo elemento es un ERROR, se retorna el error.
+                if f"{respuesta}".startswith("ERROR"):
+                    return respuesta
+                else:
+                    arregloTemp.append(respuesta)
+                
             
-        # Caso de que el arreglo tienen un solo elemento
-        elif isinstance(instruccion, Number) | isinstance(instruccion, Identifier) | isinstance(instruccion, Boolean):
-            arregloTemp.append(instruccion.value)
-        
-        return arregloTemp
-
+            return arregloTemp
 
     elif isinstance(instruccion, Number):
-        return instruccion.value
+        return procesarNumero(data, instruccion, ts)
+    elif isinstance(instruccion, Boolean):
+        return procesarBoolean(data, instruccion, ts)
+    elif isinstance(instruccion, Identifier):
+        return procesarIdentificador(data, instruccion, ts)
+    elif isinstance(instruccion, UnaOp):
+        return procesarOperacionUnaria(data, instruccion, ts)
+    elif isinstance(instruccion, BinOp):
+        return procesarOperacionBinaria(data, instruccion, ts)
 
 def procesarArregloInstruccion(data, instruccion: ArrayExpression, ts: TablaDeSimbolos) -> str:
     # Verifiquemos que el identificador exista en la tabla de simbolos
@@ -705,10 +849,13 @@ def procesarArregloInstruccion(data, instruccion: ArrayExpression, ts: TablaDeSi
         definicionArreglo = ts.obtener_simbolo(instruccion.id)
         arreglo = definicionArreglo.expression
         try:
-            resultado = arreglo[instruccion.index.value]
-            return f"OK: {instruccion.id.value}[{instruccion.index.value}] ==> {resultado};"
+            return arreglo[instruccion.index.value]
+
+            # return f"OK: {instruccion.id.value}[{instruccion.index.value}] ==> {resultado};"
         except IndexError:
             return f"ERROR: indice fuera de rango"
+    else:
+        return f"ERROR: variable {instruccion.id.value} no definida"
 
 def procesarBoolean(data, instruccion: Boolean, ts: TablaDeSimbolos) -> str:
     return instruccion.value
@@ -740,25 +887,116 @@ def procesar_instruccion(data: str, ts: TablaDeSimbolos) -> str:
     # print(type(instruccion.index))
 
     # Si la instruccion es una declaracion de variable
-    if isinstance(instruccion, Definition): return procesarDefinicion(data, instruccion, ts)
-    elif isinstance(instruccion, Assignment): return procesarAsignacion(data, instruccion, ts)
-    elif isinstance(instruccion, BinOp): return procesarOperacionBinaria(data, instruccion, ts)
-    elif isinstance(instruccion, Number): return procesarNumero(data, instruccion, ts)
-    elif isinstance(instruccion, Identifier): return procesarIdentificador(data, instruccion, ts)
-    elif isinstance(instruccion, UnaOp): return procesarOperacionUnaria(data, instruccion, ts)
-    elif isinstance(instruccion, Grouped): return procesarAgrupacion(data, instruccion, ts)
-    elif isinstance(instruccion, ArrayExpression): return procesarArregloInstruccion(data, instruccion, ts)
-    elif isinstance(instruccion, Boolean): return procesarBoolean(data, instruccion, ts)
-    # elif isinstance(instruccion, Conditional): return procesarConditional(instruccion, ts)
-    # elif isinstance(instruccion, Type): return procesarType(instruccion, ts)
-    # elif isinstance(instruccion, Ltype): return procesarLtype(instruccion, ts)
-    # elif isinstance(instruccion, Reset): return procesarReset(instruccion, ts)
-    # elif isinstance(instruccion, Uniform): return procesarUniform(instruccion, ts)
-    # elif isinstance(instruccion,Floor): return procesarFloor(instruccion, ts)
-    # elif isinstance(instruccion,Length): return procesarLength(instruccion, ts)
-    # elif isinstance(instruccion, Sum): return procesarSum(instruccion, ts)
-    # elif isinstance(instruccion, Avg): return procesarAvg(instruccion, ts)
-    # elif isinstance(instruccion, Pi): return procesarPi(instruccion, ts)
-    # elif isinstance(instruccion, Now): return procesarNow(instruccion, ts)
-    else : print('ERROR: instrucción no válida')
+    if isinstance(instruccion, Definition): 
+        return procesarDefinicion(data, instruccion, ts)
+
+    elif isinstance(instruccion, Assignment): 
+        return procesarAsignacion(data, instruccion, ts)
+
+    elif isinstance(instruccion, BinOp):
+        respuesta = procesarOperacionBinaria(data, instruccion, ts)
+        # Verificar si la respuesta es un ERROR
+        if isinstance(respuesta, str):
+            if respuesta.startswith("ERROR"):
+                return respuesta
+            else:
+                return f"OK: {data} ==> {respuesta}"
+        elif isinstance(respuesta, bool):
+            respuesta = f"{respuesta}".lower()
+            return f"OK: {data} ==> '{respuesta}'"
+
+            # if respuesta:
+            #     return f"OK: {data} ==> true"
+            # else:
+            #     return f"OK: {data} ==> false"
+        else:
+            return f"OK: {data} ==> {respuesta}"
+
+    elif isinstance(instruccion, Number): 
+        respuesta = procesarNumero(data, instruccion, ts)
+        return f"OK: {data} ==> {respuesta}"
+
+    elif isinstance(instruccion, Identifier): 
+        respuesta =  procesarIdentificador(data, instruccion, ts)
+        # Se verifican el tipo de elementos de respuesta o si la respuesta es un ERROR
+        if isinstance(respuesta, str):
+            if respuesta.startswith("ERROR"):
+                return respuesta
+
+        elif isinstance(respuesta, bool):
+            if respuesta:
+                return f"OK: {data} ==> true"
+            else:
+                return f"OK: {data} ==> false"
+
+        elif isinstance(respuesta, int):
+            return f"OK: {data} ==> {respuesta}"
+
+        elif isinstance(respuesta, list):
+            if isinstance(respuesta[0], bool):
+                respuesta_str = list(map(lambda ele: f"{ele == True}".lower(), respuesta))
+                return f"OK: {data} ==> {respuesta_str}"
+
+            elif isinstance(respuesta[0], int):
+                return f"OK: {data} ==> {respuesta}"
+
+
+    elif isinstance(instruccion, UnaOp): 
+        respuesta = procesarOperacionUnaria(data, instruccion, ts)
+        # Verificar si la respuesta es un ERROR
+        if isinstance(respuesta, str):
+            if respuesta.startswith("ERROR"):
+                return respuesta
+        elif isinstance(respuesta, bool):
+            if respuesta:
+                return f"OK: {data} ==> true"
+            else:
+                return f"OK: {data} ==> false"
+        return f"OK: {data} ==> {respuesta}"
+
+    elif isinstance(instruccion, Grouped): 
+        respuesta = procesarAgrupacion(data, instruccion, ts)
+        # Verificar si la respuesta es un ERROR
+        if isinstance(respuesta, str):
+            if respuesta.startswith("ERROR"):
+                return respuesta
+            else:
+                # respuesta = f"{respuesta}".lower()
+                return f"OK: {data} ==> {respuesta}"
+        elif isinstance(respuesta, bool):
+            if respuesta:
+                return f"OK: {data} ==> true"
+            else:
+                return f"OK: {data} ==> false"
+        else:
+            return f"OK: {data} ==> {respuesta}"
+
+    elif isinstance(instruccion, ArrayExpression): 
+        respuesta = procesarArregloInstruccion(data, instruccion, ts)
+        # Verificar si la respuesta es un ERROR
+        if isinstance(respuesta, str):
+            if respuesta.startswith("ERROR"):
+                return respuesta
+
+        else:
+            # Se verifican el tipo de elementos de respuesta
+            if isinstance(respuesta, bool):
+                return f"OK: {data} ==> {str(respuesta).lower()}"
+
+            # elif isinstance(respuesta, int):
+            else:
+                return f"OK: {data} ==> {respuesta}"
+
+    elif isinstance(instruccion, Boolean): 
+        respuesta = procesarBoolean(data, instruccion, ts)
+        # Verificar si la respuesta es un ERROR
+        if isinstance(respuesta, str):
+            if respuesta.startswith("ERROR"):
+                return respuesta
+        else:
+            respuesta = f"{respuesta}".lower()
+            return f"OK: {data} ==> {respuesta}"
+
+    else: 
+        return f"ERROR: instrucción no válida."
 
