@@ -133,7 +133,6 @@
 
 <expresionFunciones>
         -> <identificador> TkOpenPar <expresionArgs> TkClosePar           
-        #(acomodar para <expresion> TkOpenPar <expresionArgs> TkClosePar)
 
         # -> if(<condicion>, <expT>, <expF>)
         # -> type(<expresion>)

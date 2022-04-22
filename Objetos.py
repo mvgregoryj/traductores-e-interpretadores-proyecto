@@ -2,41 +2,15 @@ from enum import Enum
 
 class Expr: pass
  
-class Definition(Expr):
-    def __init__(self, type, id, expression):
-        self.type = type
-        self.id = id
-        self.expression = expression
-    
-    def __repr__(self):
-        return f"Def({self.type}, {self.id}, {self.expression})"
-
-class Assignment(Expr):
-    def __init__(self, id, expression):
-        self.id = id
-        self.expression = expression
-
-    def asignar(self):
-        global identificadores
-        
-        if f"{self.id}" in identificadores:
-            identificadores[f"{self.id}"] = (identificadores[f"{self.id}"][0], self.expression)
-        else:
-            print("ERROR: identificador no definido")
-            # identificadores[f"{self.id}"] = (f"{type(self.expression)}", self.expression)
-
-    def __repr__(self):
-        return f"Assign({self.id}, {self.expression})"
-
 class BasicType(Expr):
-    def __init__(self, type):
+    def __init__(self, type: str):
         self.type = type
 
     def __repr__(self):
         return f"{self.type}"
 
 class BinOp(Expr):
-    def __init__(self,left,op,right):
+    def __init__(self, left, op: str, right):
         self.left = left
         self.op = op
         self.right = right
@@ -51,29 +25,38 @@ class BinOp(Expr):
             return f"({self.left} {self.op} {self.right})"
 
 class Number(Expr):
-    def __init__(self,value):
-        self.type = "number"
-        self.value = int(value)
+    def __init__(self, value: int):
+        self.type = "num"
+        self.value = value
 
     def __repr__(self):
         return f"{self.value}"
         #return f"Number({self.value})"
 
+# class Boolean(Expr):
+#     def __init__(self,str_value,value=None):
+#         self.type = "bool"
+#         self.str_value = str_value
+#         if str_value == "true":
+#             self.value = True
+#         elif str_value == "false":
+#             self.value = False
+
+#     def __repr__(self):
+#         return f"{self.str_value}"
+#         # return f"{self.value}"
+#         #return f"Booleano({self.value})"
+
 class Boolean(Expr):
-    def __init__(self,str_value,value=None):
+    def __init__(self, value: bool):
         self.type = "bool"
-        self.str_value = str_value
-        if str_value == "true":
-            self.value = True
-        elif str_value == "false":
-            self.value = False
+        self.value = value
 
     def __repr__(self):
-        return f"{self.str_value}"
-        #return f"Booleano({self.value})"
+        return f"{self.value}".lower()
 
 class Identifier(Expr):
-    def __init__(self,value):
+    def __init__(self, value: str):
         self.type = "id"
         self.value = value
 
@@ -82,7 +65,7 @@ class Identifier(Expr):
         #return f"Id({self.value})"
 
 class UnaOp(Expr):
-    def __init__(self,op,right):
+    def __init__(self, op: str, right):
         self.op = op
         self.right = right
 
@@ -90,20 +73,20 @@ class UnaOp(Expr):
         return f"{self.op}{self.right}"
 
 class Grouped(Expr):
-    def __init__(self,type,left,expression,right):
+    def __init__(self, type: str, left: str, expression, right: str):
         self.type = type
         self.left = left
         self.expression = expression
         self.right = right
 
     def __repr__(self):
-        if self.type == "Par" and self.expression != BinOp:
+        if self.type == "Par" and (not isinstance(self.expression, BinOp)):
             return f"{self.expression}"
         else:
             return f"{self.left}{self.expression}{self.right}"
 
 class ArrayExpression(Expr):
-    def __init__(self,id,index):
+    def __init__(self, id: Identifier, index: Number):
         self.id = id
         self.index = index
 
@@ -111,18 +94,38 @@ class ArrayExpression(Expr):
         return f"{self.id}[{self.index}]"
     
 class Function(Expr):
-    def __init__(self,id,args):
+    def __init__(self, id: Identifier, args):
         self.id = id
         self.args = args
 
     def __repr__(self):
          f"{self.id}({self.args})"
 
-class Conditional(Expr):
-    def __init__(self, condicion, expT, expF):
-        self.condicion = condicion
-        self.expT = expT
-        self.expF = expF
+class Definition(Expr):
+    def __init__(self, type: BasicType or Grouped, id: Identifier, expression):
+        self.type = type
+        self.id = id
+        self.expression = expression
+    
+    def __repr__(self):
+        return f"Def({self.type}, {self.id}, {self.expression})"
+
+class Assignment(Expr):
+    def __init__(self, id: Identifier, expression):
+        self.id = id
+        self.expression = expression
+
+    # def asignar(self):
+    #     global identificadores
+        
+    #     if f"{self.id}" in identificadores:
+    #         identificadores[f"{self.id}"] = (identificadores[f"{self.id}"][0], self.expression)
+    #     else:
+    #         print("ERROR: identificador no definido")
+    #         # identificadores[f"{self.id}"] = (f"{type(self.expression)}", self.expression)
+
+    def __repr__(self):
+        return f"Assign({self.id}, {self.expression})"
 
 ################################################
 

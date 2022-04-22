@@ -95,7 +95,7 @@ def failed (arrayTuplas: list) -> str:
     return msjFailed
 
 # Funcion reset
-def reset(arrayTuplas):
+def reset(arrayTuplas: list) -> None:
     for i in range(0, len(arrayTuplas)):
         arrayTuplas.pop()
         
