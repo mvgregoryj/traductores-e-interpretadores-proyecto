@@ -18,11 +18,10 @@ class BinOp(Expr):
     def __repr__(self):
         if self.op == ',':
             return f"{self.left}{self.op} {self.right}"
-
+        else:
+            return f'({self.left} {self.op} {self.right})'
         # elif self.op == '*':
         #     return f"Mult({self.left},{self.right})"
-        else:
-            return f"({self.left} {self.op} {self.right})"
 
 class Number(Expr):
     def __init__(self, value: int):
@@ -99,7 +98,7 @@ class Function(Expr):
         self.args = args
 
     def __repr__(self):
-         f"{self.id}({self.args})"
+        return f"{self.id}({self.args})"
 
 class Definition(Expr):
     def __init__(self, type: BasicType or Grouped, id: Identifier, expression):

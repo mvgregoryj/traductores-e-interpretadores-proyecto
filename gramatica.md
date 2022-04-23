@@ -3,7 +3,7 @@
 ##  Primera gramática: sintaxis de Stókhos
 
 ```bash
-<entrada> -> <instruccion> | <expresion> | <funcion>
+<entrada> -> <instruccion> | <expresion>
 
 <instruccion> -> <definicion> | <asignacion>
 
@@ -81,35 +81,29 @@
         -> TkBool
 
 <expresion>
-        -> <expresionAcotada>
-        -> <expresionNormal>
-
-<expresionAcotada>
-        -> TkSingleQuote <expresionNormal> TkSingleQuote
-
-<expresionNormal>
         -> <numero>
         -> <identificador>
-        -> TkOpenPar <expresionNormal> TkClosePar
-        -> TkOpenBrace <expresionNormal> TkCloseBrace
-        -> <expresionNormal> TkPower <expresionNormal>
-        -> TkPlus <expresionNormal>
-        -> TkMinus <expresionNormal>
-        -> <expresionNormal> TkMult <expresionNormal>
-        -> <expresionNormal> TkDiv <expresionNormal>
-        -> <expresionNormal> TkMod <expresionNormal>
-        -> <expresionNormal> TkPlus <expresionNormal>
-        -> <expresionNormal> TkMinus <expresionNormal>
+        -> TkOpenPar <expresion> TkClosePar
+        -> TkOpenBrace <expresion> TkCloseBrace
+        -> TkSingleQuote <expresion> TkSingleQuote
+        -> <expresion> TkPower <expresion>
+        -> TkPlus <expresion>
+        -> TkMinus <expresion>
+        -> <expresion> TkMult <expresion>
+        -> <expresion> TkDiv <expresion>
+        -> <expresion> TkMod <expresion>
+        -> <expresion> TkPlus <expresion>
+        -> <expresion> TkMinus <expresion>
         -> <booleano>
-        -> TkNot <expresionNormal>
-        -> <expresionNormal> TkLT <expresionNormal>
-        -> <expresionNormal> TkLE <expresionNormal>
-        -> <expresionNormal> TkGE <expresionNormal>
-        -> <expresionNormal> TkGT <expresionNormal>
-        -> <expresionNormal> TkEQ <expresionNormal>
-        -> <expresionNormal> TkNE <expresionNormal>
-        -> <expresionNormal> TkAnd <expresionNormal>
-        -> <expresionNormal> TkOr <expresionNormal>   
+        -> TkNot <expresion>
+        -> <expresion> TkLT <expresion>
+        -> <expresion> TkLE <expresion>
+        -> <expresion> TkGE <expresion>
+        -> <expresion> TkGT <expresion>
+        -> <expresion> TkEQ <expresion>
+        -> <expresion> TkNE <expresion>
+        -> <expresion> TkAnd <expresion>
+        -> <expresion> TkOr <expresion>   
         -> <expresionArreglo>
         -> <expresionFunciones>
 
@@ -124,34 +118,14 @@
 
 <expresionArreglo>
         -> TkOpenBracket <expresionArgs> TkCloseBracket
-        -> <identificador> TkOpenBracket <expresionNormal> TkCloseBracket
+        -> <expresion> TkOpenBracket <expresion> TkCloseBracket
+        #-> <identificador> TkOpenBracket <expresion> TkCloseBracket
 
 <expresionArgs>
         -> 
-        -> <expresionNormal>  
-        -> <expresionNormal> , <expresionArgs>
+        -> <expresion>  
+        -> <expresion> , <expresionArgs>
 
 <expresionFunciones>
         -> <identificador> TkOpenPar <expresionArgs> TkClosePar           
-
-        # -> if(<condicion>, <expT>, <expF>)
-        # -> type(<expresion>)
-        # -> ltype(<expresion>)
-        # -> reset()
-        # -> uniform()
-        # -> floor(<expresionNormal>)
-        # -> length(<expresionArreglo>)
-        # -> sum(<expresionNormal>)
-        # -> avg(<expresionNormal>)
-        # -> pi()
-        # -> now()
-
-# <condicion>
-#         -> <expresionNormal>
-
-# <expT>
-#         -> <expresion>
-
-# <expF>
-#         -> <expresion>
 ```

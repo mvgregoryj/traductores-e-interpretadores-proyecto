@@ -253,46 +253,34 @@ def ejecutamosParseador():
                    | TkBool
         '''
         p[0] = BasicType(p[1])
-
+    
     def p_expresion(p):
         '''
-        expresion : expresionAcotada
-                  | expresionNormal
-        '''
-        p[0] = p[1]
-    
-    def p_expresionAcotada(p):
-        '''
-        expresionAcotada : TkSingleQuote expresionNormal TkSingleQuote 
-        '''
-        p[0] = Grouped("SingleQuote", p[1], p[2], p[3])
-    
-    def p_expresionNormal(p):
-        '''
-        expresionNormal : numero 
-                        | identificador
-                        | TkOpenPar expresionNormal TkClosePar
-                        | TkOpenBrace expresionNormal TkCloseBrace
-                        | expresionNormal TkPower expresionNormal
-                        | TkPlus expresionNormal %prec TkUPlus
-                        | TkMinus expresionNormal %prec TkUMinus
-                        | expresionNormal TkMult expresionNormal
-                        | expresionNormal TkDiv expresionNormal
-                        | expresionNormal TkMod expresionNormal
-                        | expresionNormal TkPlus expresionNormal
-                        | expresionNormal TkMinus expresionNormal
-                        | booleano
-                        | TkNot expresionNormal
-                        | expresionNormal TkLT expresionNormal
-                        | expresionNormal TkLE expresionNormal
-                        | expresionNormal TkGE expresionNormal
-                        | expresionNormal TkGT expresionNormal
-                        | expresionNormal TkEQ expresionNormal
-                        | expresionNormal TkNE expresionNormal
-                        | expresionNormal TkAnd expresionNormal
-                        | expresionNormal TkOr expresionNormal   
-                        | expresionArreglo
-                        | expresionFunciones
+        expresion : numero 
+                  | identificador
+                  | TkOpenPar expresion TkClosePar
+                  | TkOpenBrace expresion TkCloseBrace
+                  | TkSingleQuote expresion TkSingleQuote 
+                  | expresion TkPower expresion
+                  | TkPlus expresion %prec TkUPlus
+                  | TkMinus expresion %prec TkUMinus
+                  | expresion TkMult expresion
+                  | expresion TkDiv expresion
+                  | expresion TkMod expresion
+                  | expresion TkPlus expresion
+                  | expresion TkMinus expresion
+                  | booleano
+                  | TkNot expresion
+                  | expresion TkLT expresion
+                  | expresion TkLE expresion
+                  | expresion TkGE expresion
+                  | expresion TkGT expresion
+                  | expresion TkEQ expresion
+                  | expresion TkNE expresion
+                  | expresion TkAnd expresion
+                  | expresion TkOr expresion   
+                  | expresionArreglo
+                  | expresionFunciones
         '''
         if len(p) == 2:
             p[0] = p[1]
@@ -305,6 +293,8 @@ def ejecutamosParseador():
                 p[0] = Grouped("Par", p[1], p[2], p[3])
             elif  (p[1]=='{' and p[3]=='}'):
                 p[0] = Grouped("Brace", p[1], p[2], p[3])
+            elif (p[1]=="'" and p[3]=="'"):
+                p[0] = Grouped("SingleQuote", p[1], p[2], p[3])
             else:
                 p[0] = BinOp(p[1], p[2], p[3])
     
@@ -329,12 +319,11 @@ def ejecutamosParseador():
             p[0] = Boolean(True)
         elif p[1] == 'false':
             p[0] = Boolean(False)
-        # p[0] = Boolean(p[1])
     
     def p_expresionArreglo(p):
         '''
         expresionArreglo : TkOpenBracket expresionArgs TkCloseBracket
-                         | identificador TkOpenBracket expresionNormal TkCloseBracket
+                         | expresion TkOpenBracket expresion TkCloseBracket
         '''
         if len(p) == 4:
             if (p[1]=='[' and p[3]==']'):
@@ -346,8 +335,8 @@ def ejecutamosParseador():
     def p_expresionArgs(p):
         '''
         expresionArgs : 
-                      | expresion TkComma expresionArgs
                       | expresion  
+                      | expresion TkComma expresionArgs
         '''
         if len(p) == 1:
             p[0] = ""
@@ -687,7 +676,7 @@ def procesarBoolean(data: str, instruccion: Boolean, ts: TablaDeSimbolos) -> Boo
 
 def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> str:
     nombreFuncion = instruccion.id.value
-    funcionesConArgs = ["if","type","ltype","floor","length","sum","avg"]
+    funcionesConArgs = ["if","type","ltype","floor","length","sum","avg","ln","exp","sin","cos","tan"]
     funcionesSinArgs = ["reset","uniform","pi","now"]
 
     if nombreFuncion in funcionesConArgs:
@@ -707,6 +696,18 @@ def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> st
             return procesarSum(data, argumentos, ts)
         elif nombreFuncion == "avg":
             return procesarAvg(data, argumentos, ts)
+        elif nombreFuncion == "ln":
+            return procesarLn(data, argumentos, ts)
+        elif nombreFuncion == "exp":
+            return procesarExp(data, argumentos, ts)
+        elif nombreFuncion == "sin":
+            return procesarSin(data, argumentos, ts)
+        elif nombreFuncion == "cos":
+            return procesarCos(data, argumentos, ts)
+        elif nombreFuncion == "tan":
+            return procesarTan(data, argumentos, ts)
+        else:
+            return f"ERROR: {nombreFuncion} no definida"
 
     elif nombreFuncion in funcionesSinArgs:
         if nombreFuncion == "reset":
@@ -717,8 +718,11 @@ def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> st
             return procesarPi()
         elif nombreFuncion == "now":
             return procesarNow()
+        else:
+            return f"ERROR: {nombreFuncion} no definida"
 
-    return f"ERROR: funcion {nombreFuncion} no definida"
+    else:
+        return f"ERROR: funcion {nombreFuncion} no definida"
 
 # Funcion que se encarga de procesar la instruccion if    
 def procesarIf(data: str, argumentos: BinOp, ts: TablaDeSimbolos):
@@ -740,7 +744,7 @@ def procesarIf(data: str, argumentos: BinOp, ts: TablaDeSimbolos):
             return f"ERROR: condicion no valida"
     
 # Funcion procesarType retorna el tipo de una expresión, sin evaluar dicha expresión
-def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> str:
+def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> BasicType or str:
 
     if isinstance(argumento, Identifier):
 
@@ -752,45 +756,45 @@ def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> str:
 
     elif isinstance(argumento, Number):
 
-        return argumento.type
+        return BasicType(argumento.type)
 
     elif isinstance(argumento, ArrayExpression):
 
         if ts.existe_simbolo_en_ts(argumento.id):
             simbolo = ts.obtener_simbolo(argumento.id)
-            tipo = simbolo.type.expression
+            tipo = simbolo.type
             return tipo
         else:
             return f"ERROR: identificador {argumento.id} no definido"
 
     elif isinstance(argumento, Boolean):
-        return argumento.type
+        return BasicType(argumento.type)
 
-    elif isinstance(argumento, Grouped):
+    elif isinstance(argumento, Grouped) and (argumento.type == "Par"):
         return procesarType(data, argumento.expression, ts)
 
     elif isinstance(argumento, UnaOp):
         if argumento.op == "!" and isinstance(argumento.right, Boolean):
-            return argumento.right.type
+            return BasicType(argumento.right.type)
         elif argumento.op in "-+" and isinstance(argumento.right, Number):
-            return argumento.right.type
+            return BasicType(argumento.right.type)
         else:
             return f"ERROR: operacion binaria no definida o inconsistencia de tipos"
 
     elif isinstance(argumento, BinOp):
 
         if argumento.op in "^*/%+-":
-            return f"num"
+            return BasicType("num")
         elif argumento.op in "<<=>=>=<>":
-            return f"bool"
+            return BasicType("bool")
         elif argumento.op in "=<>&&||":
-            return f"bool"
+            return BasicType("bool")
         else:
             return f"ERROR: operacion binaria no definida o inconsistencia de tipos"
 
     elif isinstance(argumento, Function):
-        if argumento.id.value in ["uniform", "floor", "length", "sum", "avg", "pi", "now"]:
-            return f"num"
+        if argumento.id.value in ["uniform", "floor", "length", "sum", "avg", "pi", "now", "ln", "exp", "sin", "cos", "tan"]:
+            return BasicType("num")
     else:
         return f"ERROR: argumento no es de un tipo conocido"
 
@@ -846,7 +850,8 @@ def procesarUniform() -> str:
 def procesarFloor(data: str, argumento, ts: TablaDeSimbolos) -> str:
     tipo = procesarType(data, argumento, ts)
     
-    if tipo == "num":
+    # Comprobamos si tipo es de tipo "num"
+    if isinstance(tipo, BasicType) and tipo.type == "num":
         respuesta = funcionEval(data, argumento, ts)
         return Number(math.floor(respuesta.value))
     else:
@@ -870,6 +875,10 @@ def procesarSum(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> int or
     if ts.existe_simbolo_en_ts(argumento):
         simbolo = ts.obtener_simbolo(argumento)
         arrTemp = simbolo.expression
+        tipo = simbolo.type
+        tipoBasico = tipo.expression
+
+        # if isinstance(arrTemp, list) and isinstance(tipo, Grouped) and isinstance(tipoBasico, BasicType) and tipoBasico.type == "num":
         if isinstance(arrTemp, list) and isinstance(arrTemp[0], Number):
 
             suma = 0
@@ -893,7 +902,6 @@ def procesarAvg(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> str:
     else:
         return f"ERROR: la expresion ‘{argumento}' no es de tipo [num]"
 
-
 # Funcion procesarPi, retorna una aproximación al numero pi
 def procesarPi() -> str:
     return Number(math.pi)
@@ -901,6 +909,67 @@ def procesarPi() -> str:
 # Funcion procesarNow, retorna un número entero correspondiente al número de milisegundos transcurridos desde un punto de referencia en el tiempo
 def procesarNow():
     return Number(int(round(time.time() * 1000)))
+
+# La función procesarLn retorna el logaritmo natural del argumento. Si el logaritmo no existe arroja un error.
+def procesarLn(data, argumento, ts):
+    tipo = procesarType(data, argumento, ts)
+    
+    # Comprobamos si tipo es de tipo "num"
+    if isinstance(tipo, BasicType) and tipo.type == "num":
+        respuesta = funcionEval(data, argumento, ts)
+
+        if respuesta.value <= 0:
+            return f"ERROR: {respuesta.value} no pertenece al dominio de la funcion ln."
+
+        else:
+            return Number(math.log(respuesta.value))
+    else:
+        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+
+# La función procesarExp retorna el exponencial del argumento x, es decir e^x .
+def procesarExp(data, argumento, ts):
+    tipo = procesarType(data, argumento, ts)
+    
+    # Comprobamos si tipo es de tipo "num"
+    if isinstance(tipo, BasicType) and tipo.type == "num":
+        respuesta = funcionEval(data, argumento, ts)
+        return Number(math.exp(respuesta.value))
+    else:
+        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+
+# La función procesarSin retorna el seno del argumento, es decir sin x .
+def procesarSin(data, argumento, ts):
+    tipo = procesarType(data, argumento, ts)
+    
+    # Comprobamos si tipo es de tipo "num"
+    if isinstance(tipo, BasicType) and tipo.type == "num":
+        respuesta = funcionEval(data, argumento, ts)
+
+        return Number(math.sin(respuesta.value))
+    else:
+        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+
+# La función procesarCos retorna el coseno del argumento, es decir cos x .
+def procesarCos(data, argumento, ts):
+    tipo = procesarType(data, argumento, ts)
+    
+    # Comprobamos si tipo es de tipo "num"
+    if isinstance(tipo, BasicType) and tipo.type == "num":
+        respuesta = funcionEval(data, argumento, ts)
+        return Number(math.cos(respuesta.value))
+    else:
+        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+
+# La función procesarTan retorna el coseno del argumento, es decir tan x .
+def procesarTan(data, argumento, ts):
+    tipo = procesarType(data, argumento, ts)
+    
+    # Comprobamos si tipo es de tipo "num"
+    if isinstance(tipo, BasicType) and tipo.type == "num":
+        respuesta = funcionEval(data, argumento, ts)
+        return Number(math.tan(respuesta.value))
+    else:
+        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
 
 ####################################################
 
@@ -934,7 +1003,6 @@ def funcionEval(input: str, instruccion, ts: TablaDeSimbolos) -> str or Number o
     elif isinstance(instruccion, ArrayExpression): 
         return procesarArregloInstruccion(input, instruccion, ts)
 
-
     elif isinstance(instruccion, Boolean): 
         return procesarBoolean(input, instruccion, ts)
 
@@ -948,12 +1016,16 @@ def process(input: str) -> str:
 
     # Llamamos a parser con el input ingresado por el usuario
     instruccion = parse(input)
+    # print(input)
     # print(type(instruccion))
+    # print(instruccion)
     # print(type(instruccion.id))
     # print(type(instruccion.index))
 
     if isinstance(instruccion, Definition) or isinstance(instruccion, Assignment):
         return funcionExecute(input, instruccion, ts_global)
+    elif isinstance(instruccion, str) and input.startswith("#"):
+        return ""
     else:
         respuesta = funcionEval(input, instruccion, ts_global)
 
