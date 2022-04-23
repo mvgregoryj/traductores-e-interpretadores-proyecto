@@ -118,8 +118,8 @@
 
 <expresionArreglo>
         -> TkOpenBracket <expresionArgs> TkCloseBracket
-        -> <expresion> TkOpenBracket <expresion> TkCloseBracket
-        #-> <identificador> TkOpenBracket <expresion> TkCloseBracket
+        #-> <expresion> TkOpenBracket <expresion> TkCloseBracket
+        -> <identificador> TkOpenBracket <expresion> TkCloseBracket
 
 <expresionArgs>
         -> 

@@ -323,7 +323,7 @@ def ejecutamosParseador():
     def p_expresionArreglo(p):
         '''
         expresionArreglo : TkOpenBracket expresionArgs TkCloseBracket
-                         | expresion TkOpenBracket expresion TkCloseBracket
+                         | identificador TkOpenBracket expresion TkCloseBracket
         '''
         if len(p) == 4:
             if (p[1]=='[' and p[3]==']'):
@@ -477,7 +477,7 @@ def procesarDefinicion(data: str, instruccion: Definition, ts: TablaDeSimbolos) 
             # Se agrega el simbolo a la tabla de simbolos
             ts.agregar_simbolo(instruccion)
 
-            return f"ACK: {instruccion.type} {instruccion.id} := {valor.str_value};"
+            return f"ACK: {instruccion.type} {instruccion.id} := {valor};"
 
 def procesarAsignacion(data: str, instruccion: Assignment, ts: TablaDeSimbolos) -> str:
     if ts.existe_simbolo_en_ts(instruccion.id):
@@ -576,7 +576,7 @@ def procesarAgrupacion(data: str, instruccion: Grouped, ts: TablaDeSimbolos) -> 
         # return expresion
 
         # Nueva version (idk):
-        return funcionEval(data, instruccion.expression, ts)
+        return instruccion.expression
 
     elif isinstance(instruccion, Grouped) & (instruccion.type == "Bracket"):
         instruccion = instruccion.expression
@@ -660,6 +660,7 @@ def procesarArregloInstruccion(data: str, instruccion: ArrayExpression, ts: Tabl
             indice = funcionEval(data, instruccion.index, ts)
             if isinstance(indice, Number):
                 try:
+                    # print(type(arreglo[indice.value]))
                     return arreglo[indice.value]
 
                 except IndexError:
