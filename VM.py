@@ -14,6 +14,8 @@ import time
 
 ts_global = TablaDeSimbolos()
 arr = []
+computeCycle = 42
+
 
 
 # Función interna que construye una secuencia de tokens
@@ -414,6 +416,9 @@ def testParser(input: str) -> str:
 #########################################################
 
 def procesarDefinicion(data: str, instruccion: Definition, ts: TablaDeSimbolos) -> str:
+
+    global computeCycle
+
     if ts.existe_simbolo_en_ts(instruccion.id):
         return f"ERROR: identificador {instruccion.id} ya está definido"
     else:
@@ -432,12 +437,17 @@ def procesarDefinicion(data: str, instruccion: Definition, ts: TablaDeSimbolos) 
                 simbolo = Definition(instruccion.type, instruccion.id, resultado)
                 ts.agregar_simbolo(simbolo)
 
+                computeCycle += 1               # Se incrementa el Ciclo de Computo
+
                 return f"ACK: {simbolo.type} {simbolo.id} := {simbolo.expression};"
         else: 
             return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato de {instruccion.type}"
 
 
 def procesarAsignacion(data: str, instruccion: Assignment, ts: TablaDeSimbolos) -> str:
+
+    global computeCycle
+
     if ts.existe_simbolo_en_ts(instruccion.id):
 
         resultado = funcionEval(data, instruccion.expression, ts)
@@ -455,6 +465,9 @@ def procesarAsignacion(data: str, instruccion: Assignment, ts: TablaDeSimbolos) 
             # Se actualiza el simbolo en la tabla de simbolos, el resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
                 simbolo = Assignment(instruccion.id, resultado)
                 ts.actualizar_simbolo(simbolo)
+
+                computeCycle += 1               # Se incrementa el Ciclo de Computo
+                # print(computeCycle)
 
                 return f"ACK: {instruccion.id} := {resultado};"
         else: 
@@ -502,7 +515,56 @@ def procesarOperacionBinaria(data: str, instruccion: BinOp, ts: TablaDeSimbolos)
 
         return respuesta
 
+    elif isinstance(expLeft, list) & isinstance(expRight, list):
+        
+        # Concatenacion de listas
+        if instruccion.op == "+" :
+            return expLeft + expRight
+        
+        elif (instruccion.op in ["=","<>"]):
+            if (len(expLeft) == len(expRight)):
+                if instruccion.op == "=" : 
+                    respuesta = list(map(lambda x, y: Boolean(x.value == y.value), expLeft, expRight))
+
+                    # Se verifica que todos los elementos de la lista sean Boolean(True)
+                    for i in range(len(respuesta)):
+
+                        # Si algun elemento de la lista es False, se retorna Boolean(False)
+                        if respuesta[i].value == False:
+                            return respuesta[i]
+
+                    return Boolean(True)
+
+                elif instruccion.op == "<>" :
+                    respuesta = list(map(lambda x, y: Boolean(x.value != y.value), expLeft, expRight))
+                    
+                    # Se verifica que al menos un elemento de la lista sea Boolean(True)
+                    for i in range(len(respuesta)):
+
+                        # Si algun elemento de la lista es True, se retorna Boolean(True)
+                        if respuesta[i].value == True:
+                            return respuesta[i]
+
+                    return Boolean(False)
+
+            else:
+                return f"ERROR: arreglos de distinto tamaño, no se pueden comparar"
+        else:
+            return f"ERROR: operador binario {instruccion.op} no aplicable para arreglos"
+
     else:
+        # print(type(expLeft))
+        # print(expLeft)
+
+        # print(type(expLeft[0]))
+        # print(expLeft[0])
+
+        # print(type(expRight))
+        # print(expRight)
+
+        # print(type(expRight[0]))
+        # print(expRight[0])
+
         return f"ERROR: no hay coincidencia de tipo entre {expLeft} y {expRight}"
 
 def procesarNumero(data: str, instruccion: Number, ts: TablaDeSimbolos) -> Number:
@@ -529,7 +591,7 @@ def procesarOperacionUnaria(data: str, instruccion: UnaOp, ts: TablaDeSimbolos) 
         else: return f"ERROR: operador {instruccion.op} no válido"
 
     else: 
-        return f"ERROR: expresion {instruccion.right} no es valida para operaciones unarias."
+        return f"ERROR: expresion {instruccion.right} no es valida para operaciones unarias"
 
 def procesarAgrupacion(data: str, instruccion: Grouped, ts: TablaDeSimbolos) -> str or list or Number or Boolean:
     
@@ -614,7 +676,7 @@ def procesarArgsOrElemArray(data, instruccion, ts, arregloTemp) -> list or str:
 
     return arregloTemp
 
-def procesarArregloInstruccion(data: str, instruccion: ArrayExpression, ts: TablaDeSimbolos) -> Number or Boolean or list or str:
+def procesarArregloExpresion(data: str, instruccion: ArrayExpression, ts: TablaDeSimbolos) -> Number or Boolean or list or str:
     # Verifiquemos que el identificador exista en la tabla de simbolos
     if ts.existe_simbolo_en_ts(instruccion.id):
         definicionArreglo = ts.obtener_simbolo(instruccion.id)
@@ -653,8 +715,8 @@ def procesarLista(data: str, instruccion: list, ts: TablaDeSimbolos) -> list:
 
 def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> str:
     nombreFuncion = instruccion.id.value
-    funcionesConArgs = ["if","type","ltype","floor","length","sum","avg","ln","exp","sin","cos","tan"]
-    funcionesSinArgs = ["reset","uniform","pi","now"]
+    funcionesConArgs = ["if","type","ltype","floor","length","sum","avg","ln","exp","sin","cos","tan","formula"]
+    funcionesSinArgs = ["reset","uniform","pi","now","tick"]
 
     if nombreFuncion in funcionesConArgs:
         argumentos = instruccion.args
@@ -683,6 +745,8 @@ def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> st
             return procesarCos(data, argumentos, ts)
         elif nombreFuncion == "tan":
             return procesarTan(data, argumentos, ts)
+        elif nombreFuncion == "formula":
+            return procesarFormula(data, argumentos, ts)
         else:
             return f"ERROR: {nombreFuncion} no definida"
 
@@ -695,6 +759,8 @@ def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> st
             return procesarPi()
         elif nombreFuncion == "now":
             return procesarNow()
+        elif nombreFuncion == "tick":
+            return procesarTick()
         else:
             return f"ERROR: {nombreFuncion} no definida"
 
@@ -780,7 +846,7 @@ def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> BasicType or str:
         if argumento.id.value in ["uniform", "floor", "length", "sum", "avg", "pi", "now", "ln", "exp", "sin", "cos", "tan"]:
             return BasicType("num")
         else:
-            return f"ERROR: funcion {argumento} no posse un tipo o no se puede obtener sin evaluar la funcion."
+            return f"ERROR: funcion {argumento} no posse un tipo o no se puede obtener sin evaluar la funcion"
     
     else:
         return f"ERROR: {argumento} no es de un tipo conocido"
@@ -796,10 +862,6 @@ def procesarLtype(data: str, argumento, ts: TablaDeSimbolos) -> str:
         else:
             return f"ERROR: identificador {argumento} no definido"
 
-    elif isinstance(argumento, Number):
-
-        return f"ERROR: la expresion ‘{argumento}' no tiene LVALUE"
-
     elif isinstance(argumento, ArrayExpression):
 
         if ts.existe_simbolo_en_ts(argumento.id):
@@ -809,17 +871,8 @@ def procesarLtype(data: str, argumento, ts: TablaDeSimbolos) -> str:
         else:
             return f"ERROR: identificador {argumento.id} no definido"
 
-    elif isinstance(argumento, Boolean):
-        return f"ERROR: la expresion ‘{argumento}' no tiene LVALUE"
-
-    elif isinstance(argumento, Grouped):
-        return f"ERROR: la expresion ‘{argumento}' no tiene LVALUE"
-
-    elif isinstance(argumento, UnaOp):
-        return f"ERROR: la expresion ‘{argumento}' no tiene LVALUE"
-
-    elif isinstance(argumento, BinOp):
-        return f"ERROR: la expresion ‘{argumento}' no tiene LVALUE"
+    else:
+        return f"ERROR: la expresion {argumento} no tiene LVALUE"
 
 # Funcion procesarReset, elimina todas las variables definidas por el usuario en la VM
 def procesarReset(ts: TablaDeSimbolos) -> str:
@@ -845,7 +898,7 @@ def procesarFloor(data: str, argumento, ts: TablaDeSimbolos) -> str:
         respuesta = funcionEval(data, argumento, ts)
         return Number(math.floor(respuesta.value))
     else:
-        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+        return f"ERROR: la expresion {argumento} no es de tipo num"
         
 # Funcion procesarLength retorna la longitud de un arreglo de cualquier tipo.
 def procesarLength(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> str:
@@ -887,7 +940,7 @@ def procesarSum(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> int or
             return Number(suma)    
 
         else:
-            return f"ERROR: el arreglo ‘{argumento}' no es de tipo [num]"
+            return f"ERROR: el arreglo {argumento} no es de tipo [num]"
     else:
         return f"ERROR: identificador {argumento} no esta definido"
 
@@ -903,7 +956,7 @@ def procesarAvg(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> str:
         return Number(suma.value / length.value)
 
     else:
-        return f"ERROR: la expresion ‘{argumento}' no es de tipo [num]"
+        return f"ERROR: la expresion {argumento} no es de tipo [num]"
 
 # Funcion procesarPi, retorna una aproximación al numero pi
 def procesarPi() -> str:
@@ -922,12 +975,12 @@ def procesarLn(data, argumento, ts):
         respuesta = funcionEval(data, argumento, ts)
 
         if respuesta.value <= 0:
-            return f"ERROR: {respuesta.value} no pertenece al dominio de la funcion ln."
+            return f"ERROR: {respuesta.value} no pertenece al dominio de la funcion ln"
 
         else:
             return Number(math.log(respuesta.value))
     else:
-        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+        return f"ERROR: la expresion {argumento} no es de tipo num"
 
 # La función procesarExp retorna el exponencial del argumento x, es decir e^x .
 def procesarExp(data, argumento, ts):
@@ -938,7 +991,7 @@ def procesarExp(data, argumento, ts):
         respuesta = funcionEval(data, argumento, ts)
         return Number(math.exp(respuesta.value))
     else:
-        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+        return f"ERROR: la expresion {argumento} no es de tipo num"
 
 # La función procesarSin retorna el seno del argumento, es decir sin x .
 def procesarSin(data, argumento, ts):
@@ -950,7 +1003,7 @@ def procesarSin(data, argumento, ts):
 
         return Number(math.sin(respuesta.value))
     else:
-        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+        return f"ERROR: la expresion {argumento} no es de tipo num"
 
 # La función procesarCos retorna el coseno del argumento, es decir cos x .
 def procesarCos(data, argumento, ts):
@@ -961,7 +1014,7 @@ def procesarCos(data, argumento, ts):
         respuesta = funcionEval(data, argumento, ts)
         return Number(math.cos(respuesta.value))
     else:
-        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+        return f"ERROR: la expresion {argumento} no es de tipo num"
 
 # La función procesarTan retorna el coseno del argumento, es decir tan x .
 def procesarTan(data, argumento, ts):
@@ -972,12 +1025,61 @@ def procesarTan(data, argumento, ts):
         respuesta = funcionEval(data, argumento, ts)
         return Number(math.tan(respuesta.value))
     else:
-        return f"ERROR: la expresion ‘{argumento}' no es de tipo num"
+        return f"ERROR: la expresion {argumento} no es de tipo num"
+
+# La función procesarFormula es una función especial que podríamos haber llamado cvalue, ya que simplemente regresa el CVALUE (contenido) de la variable denotada por <exp> sin evaluar la variable.
+def procesarFormula(data: str, argumento: Identifier or ArrayExpression, ts: TablaDeSimbolos) -> str:
+    ltype = procesarLtype(data, argumento, ts)
+
+    if f"{ltype}".startswith("ERROR:"):
+        return ltype
+
+    else:
+        if isinstance(argumento, Identifier):
+            # Verifiquemos que el identificador exista en la tabla de simbolos
+            if ts.existe_simbolo_en_ts(argumento):
+                simbolo = ts.obtener_simbolo(argumento)
+                return f"{simbolo.expression}"
+            else:
+                return f"ERROR: identificador {argumento} no esta definido"
+        elif isinstance(argumento, ArrayExpression):
+            # Verifiquemos que el identificador exista en la tabla de simbolos
+            if ts.existe_simbolo_en_ts(argumento.id):
+                definicionArreglo = ts.obtener_simbolo(argumento.id)
+                arreglo = definicionArreglo.expression
+
+                if isinstance(arreglo, list):
+                    indice = funcionEval(data, argumento.index, ts)
+                    if isinstance(indice, Number):
+                        try:
+                            respuesta = arreglo[indice.value]
+                            return f"{respuesta}"
+
+                        except IndexError:
+                            return f"ERROR: indice fuera de rango"
+                    else:
+                        return f"ERROR: {indice} no es un numero"
+                else:
+                    return f"ERROR: {arreglo} no es un arreglo"
+            else:
+                return f"ERROR: variable {argumento.id} no definida"
+        else:
+            return f"ERROR: la expresion {argumento} no tiene LVALUE"
+
+# La funcion procesarTick incrementa en la VM el computeCycle. La función regresa el número del nuevo ciclo.
+def procesarTick():
+    global computeCycle
+    computeCycle += 1
+    return Number(computeCycle)
+
 
 ####################################################
 
 # funcionExecute recibe una definicion o asignacion y la procesa
 def funcionExecute(input: str, instruccion: Definition or Assignment, ts: TablaDeSimbolos) -> str:
+
+    #global computeCycle
+    #print(computeCycle)
 
     # Si la instruccion es una declaracion de variable
     if isinstance(instruccion, Definition): 
@@ -1007,7 +1109,7 @@ def funcionEval(input: str, instruccion, ts: TablaDeSimbolos) -> str or Number o
         return procesarAgrupacion(input, instruccion, ts)
 
     elif isinstance(instruccion, ArrayExpression): 
-        return procesarArregloInstruccion(input, instruccion, ts)
+        return procesarArregloExpresion(input, instruccion, ts)
 
     elif isinstance(instruccion, Boolean): 
         return procesarBoolean(input, instruccion, ts)
@@ -1019,8 +1121,7 @@ def funcionEval(input: str, instruccion, ts: TablaDeSimbolos) -> str or Number o
         return procesarLista(input, instruccion, ts)
 
     else: 
-        # print("Hola Dani")
-        return f"ERROR: instrucción no válida."
+        return f"ERROR: instrucción no válida"
 
 # Process
 def process(input: str) -> str:
