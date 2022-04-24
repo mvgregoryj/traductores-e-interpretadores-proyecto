@@ -5,10 +5,6 @@ Grupo Dacary:
                 Giancarlo Dente 15-10395
 '''
 
-#import ply.lex as lex
-from array import array
-from ast import Expression
-from cmath import exp
 from ply.lex import lex
 from ply.yacc import yacc
 from Objetos import *
@@ -18,6 +14,8 @@ import time
 
 ts_global = TablaDeSimbolos()
 arr = []
+# arrayErroresGlobal = []
+
 
 # Función interna que construye una secuencia de tokens
 def ejecutarLexer ():
@@ -151,10 +149,12 @@ def ejecutarLexer ():
     # Build the lexer object
     lexer = lex()
 
+
+
     return tokens, lexer, arrayErrores
 
 # Funcion lexTest
-def lexTest (data: str):
+def lexTest(data: str):
 
     # Arreglo a usar
     arrayTokens = []
@@ -183,10 +183,23 @@ def lexTest (data: str):
 
 #Funcion que guarda el objeto Parse de la libreria PLY, gracias a yacc en la variable global parseador
 def ejecutamosParseador():
+
+
     # Construimos el objecto lexer y el arreglo de errores
     tokens, lexer, arrayErrores = ejecutarLexer()
+
+    # print("Linea 191")
+    # print(arrayErrores)
     
     global arr
+    # global arrayErroresGlobal
+    
+    # # Indicamos en el arrayErroresGlobal los errores del lexer:
+    # for error in arrayErrores:
+        # arrayErroresGlobal.append(error)
+    
+    # print("Linea 201")
+    # # print(arrayErroresGlobal)
     
     # # Entrada para el lexer
     # lexer.input(input)
@@ -331,7 +344,6 @@ def ejecutamosParseador():
         else:
             p[0] = ArrayExpression(p[1], p[3])
                 
-
     def p_expresionArgs(p):
         '''
         expresionArgs : 
@@ -364,6 +376,7 @@ def ejecutamosParseador():
     return yacc()
 
 parseador = ejecutamosParseador()
+# print(parseador)
 
 # Funcion parse:
 # Parse recibe la secuencia de caracteres correspondiente a la entrada 
@@ -371,6 +384,9 @@ parseador = ejecutamosParseador()
 def parse(input: str):
 
     ast = parseador.parse(input)
+
+    # print("Linea 387")
+    # # print(arrayErroresGlobal)
 
     return ast
 
@@ -388,16 +404,23 @@ def ast2str(input: str, ast) -> str:
 def testParser(input: str) -> str:
     
     global arr
+    # global arrayErroresGlobal
     
     # Eliminamos los espacios antes y despues de la expresión
     input = input[4:].strip()
 
     # Colocamos el arreglo vacio
     arr = []
+    # arrayErroresGlobal = []
     
     # Llamamos a parser con el input ingresado por el usuario
     ast = parse(input)
 
+    # qlq
+    # print(arr)
+    # # print(arrayErroresGlobal)
+
+    # Si el arreglo no esta vacio, entonces hubo un error
     if len(arr) == 0:
         astString = ast2str(input, ast)
         return astString
@@ -410,80 +433,48 @@ def procesarDefinicion(data: str, instruccion: Definition, ts: TablaDeSimbolos) 
     if ts.existe_simbolo_en_ts(instruccion.id):
         return f"ERROR: identificador {instruccion.id} ya está definido"
     else:
-        if isinstance(instruccion.expression, BinOp):
-            resultado = procesarOperacionBinaria(data, instruccion.expression, ts)
-            
+        resultado = funcionEval(data, instruccion.expression, ts)
+        tipoResultado = procesarType(data, resultado, ts)
+
+        # # print(tipoResultado)
+        # # print(instruccion.type)
+
+        if tipoResultado.type == instruccion.type.type:
             # Si resultado es un ERROR no se agrega a la tabla de simbolos.
             if f"{resultado}".startswith("ERROR"):
                 return resultado
             else:
-                # Se actualiza el simbolo en la tabla de simbolos
-                # resultado es del tipo Number o Boolean gracias al return de procesarOperacionBinaria                
+            # Se actualiza el simbolo en la tabla de simbolos resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
                 simbolo = Definition(instruccion.type, instruccion.id, resultado)
                 ts.agregar_simbolo(simbolo)
 
                 return f"ACK: {simbolo.type} {simbolo.id} := {simbolo.expression};"
+        else: 
+            return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato de {instruccion.type}"
 
-        elif isinstance(instruccion.expression, UnaOp):
-            resultado = procesarOperacionUnaria(data, instruccion.expression, ts)
-
-            # Si resultado es un ERROR no se agrega a la tabla de simbolos.
-            if f"{resultado}".startswith("ERROR"):
-                return resultado
-            else:
-                # Se actualiza el simbolo en la tabla de simbolos
-                # resultado es del tipo Number o Boolean gracias al return de procesarOperacionUnaria   
-                simbolo = Definition(instruccion.type, instruccion.id, resultado)
-                ts.agregar_simbolo(simbolo)
-
-                return f"ACK: {simbolo.type} {simbolo.id} := {simbolo.expression};"
-
-        elif isinstance(instruccion.expression, Grouped):
-            expresion = procesarAgrupacion(data, instruccion.expression, ts)
-            
-            # Si expresion es un ERROR no se agrega a la tabla de simbolos.
-            if f"{expresion}".startswith("ERROR"):
-                return expresion
-            else:
-                # Se agrega el simbolo a la tabla de simbolos
-                ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, expresion))
-
-                # Se verifican el tipo de elementos del arreglo expresion
-                if isinstance(expresion[0], bool):
-                    expresion_str = list(map(lambda ele: f"{ele == True}".lower(), expresion))
-                    return f"ACK: {instruccion.type} {instruccion.id} := {expresion_str};"
-
-                # elif isinstance(expresion[0], int):
-                else:
-                    return f"ACK: {instruccion.type} {instruccion.id} := {expresion};"
-        elif isinstance(instruccion.expression, Identifier):
-            if ts.existe_simbolo_en_ts(instruccion.expression):
-                simbolo = ts.valor_simbolo(instruccion.expression)
-
-                ts.agregar_simbolo(Definition(instruccion.type, instruccion.id, simbolo))
-                return f"ACK: {instruccion.type} {instruccion.id} := {simbolo};"
-
-            else:
-                return f"ERROR: identificador {instruccion.expression} no está definido"
-        elif isinstance(instruccion.expression, Number):     
-            # Se agrega el simbolo a la tabla de simbolos
-            ts.agregar_simbolo(instruccion)
-            # Definition(instruccion.type, instruccion.id, instruccion.expression.value)
-
-            return f"ACK: {instruccion.type} {instruccion.id} := {instruccion.expression};"
-        elif isinstance(instruccion.expression, Boolean):
-            valor = instruccion.expression
-
-            # Se agrega el simbolo a la tabla de simbolos
-            ts.agregar_simbolo(instruccion)
-
-            return f"ACK: {instruccion.type} {instruccion.id} := {valor};"
 
 def procesarAsignacion(data: str, instruccion: Assignment, ts: TablaDeSimbolos) -> str:
     if ts.existe_simbolo_en_ts(instruccion.id):
-        # Se actualiza el simbolo en la tabla de simbolos
-        ts.actualizar_simbolo(instruccion)
-        return f"ACK: {instruccion.id} := {instruccion.expression};"
+
+        resultado = funcionEval(data, instruccion.expression, ts)
+        tipoResultado = procesarType(data, resultado, ts)
+
+        simbolo = ts.obtener_simbolo(instruccion.id)
+        tipoSimbolo = simbolo.type
+
+        if tipoResultado.type == tipoSimbolo.type:
+
+            # Si resultado es un ERROR no se agrega a la tabla de simbolos.
+            if f"{resultado}".startswith("ERROR"):
+                return resultado
+            else:
+            # Se actualiza el simbolo en la tabla de simbolos, el resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
+                simbolo = Assignment(instruccion.id, resultado)
+                ts.actualizar_simbolo(simbolo)
+
+                return f"ACK: {instruccion.id} := {resultado};"
+        else: 
+            return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato de {instruccion.id}"
     else:
         return f"ERROR: identificador {instruccion.id} no definido"
     
@@ -537,7 +528,7 @@ def procesarIdentificador(data: str, instruccion: Identifier, ts: TablaDeSimbolo
     # Verifiquemos que el identificador exista en la tabla de simbolos
     if ts.existe_simbolo_en_ts(instruccion):
         valorEncontrado = ts.obtener_simbolo(instruccion)
-        return valorEncontrado.expression
+        return funcionEval(data, valorEncontrado.expression, ts)
     else:
         return f"ERROR: identificador {instruccion} no definido"
 
@@ -565,17 +556,6 @@ def procesarAgrupacion(data: str, instruccion: Grouped, ts: TablaDeSimbolos) -> 
         return funcionEval(data, instruccion.expression, ts)
 
     elif isinstance(instruccion, Grouped) & (instruccion.type == "SingleQuote"):
-        # Como lo tenia antes:
-        # print("SingleQuote")
-        # #TODO
-        # # return instruccion.expression
-
-        # # Retornamos la expresion acotada por ':
-        # dataArr = data.split("'")
-        # expresion = dataArr[len(dataArr)//2]
-        # return expresion
-
-        # Nueva version (idk):
         return instruccion.expression
 
     elif isinstance(instruccion, Grouped) & (instruccion.type == "Bracket"):
@@ -625,7 +605,7 @@ def procesarArgsOrElemArray(data, instruccion, ts, arregloTemp) -> list or str:
     derecha = instruccion.right
     while isinstance(derecha, BinOp):
         if (derecha.op == ","):
-            # print(arregloTemp)
+            # # print(arregloTemp)
             izquierda = derecha.left
             respuesta = funcionEval(data, izquierda, ts)
 
@@ -660,8 +640,9 @@ def procesarArregloInstruccion(data: str, instruccion: ArrayExpression, ts: Tabl
             indice = funcionEval(data, instruccion.index, ts)
             if isinstance(indice, Number):
                 try:
-                    # print(type(arreglo[indice.value]))
-                    return arreglo[indice.value]
+                    # # print(type(arreglo[indice.value]))
+                    respuesta = arreglo[indice.value]
+                    return funcionEval(data, respuesta, ts)
 
                 except IndexError:
                     return f"ERROR: indice fuera de rango"
@@ -674,6 +655,17 @@ def procesarArregloInstruccion(data: str, instruccion: ArrayExpression, ts: Tabl
 
 def procesarBoolean(data: str, instruccion: Boolean, ts: TablaDeSimbolos) -> Boolean:
     return instruccion
+
+def procesarLista(data: str, instruccion: list, ts: TablaDeSimbolos) -> list:
+    arrTemp = []
+    for elem in instruccion:
+        resultadoTemp = funcionEval(data, elem, ts)
+        if f"{resultadoTemp}".startswith("ERROR"):
+            return resultadoTemp
+        else:
+            arrTemp.append(resultadoTemp)
+    
+    return arrTemp
 
 def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> str:
     nombreFuncion = instruccion.id.value
@@ -747,6 +739,9 @@ def procesarIf(data: str, argumentos: BinOp, ts: TablaDeSimbolos):
 # Funcion procesarType retorna el tipo de una expresión, sin evaluar dicha expresión
 def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> BasicType or str:
 
+    # # print(argumento)
+    # # print(type(argumento))
+
     if isinstance(argumento, Identifier):
 
         if ts.existe_simbolo_en_ts(argumento):
@@ -763,7 +758,7 @@ def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> BasicType or str:
 
         if ts.existe_simbolo_en_ts(argumento.id):
             simbolo = ts.obtener_simbolo(argumento.id)
-            tipo = simbolo.type
+            tipo = simbolo.type.expression
             return tipo
         else:
             return f"ERROR: identificador {argumento.id} no definido"
@@ -773,6 +768,10 @@ def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> BasicType or str:
 
     elif isinstance(argumento, Grouped) and (argumento.type == "Par"):
         return procesarType(data, argumento.expression, ts)
+
+    elif isinstance(argumento, list):
+        tipoElemArray = procesarType(data, argumento[0], ts)
+        return Grouped("Bracket", "[", tipoElemArray, "]")
 
     elif isinstance(argumento, UnaOp):
         if argumento.op == "!" and isinstance(argumento.right, Boolean):
@@ -796,8 +795,11 @@ def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> BasicType or str:
     elif isinstance(argumento, Function):
         if argumento.id.value in ["uniform", "floor", "length", "sum", "avg", "pi", "now", "ln", "exp", "sin", "cos", "tan"]:
             return BasicType("num")
+        else:
+            return f"ERROR: funcion {argumento} no posse un tipo o no se puede obtener sin evaluar la funcion."
+    
     else:
-        return f"ERROR: argumento no es de un tipo conocido"
+        return f"ERROR: {argumento} no es de un tipo conocido"
 
 # Funcion procesarLtype retorna el tipo de una expresión asignable, o un error si la expresión no es asignable
 def procesarLtype(data: str, argumento, ts: TablaDeSimbolos) -> str:
@@ -849,8 +851,11 @@ def procesarUniform() -> str:
 
 # Funcion procesarFloor retorna el mayor número entero n tal que n <= argumento.
 def procesarFloor(data: str, argumento, ts: TablaDeSimbolos) -> str:
+    # # print(argumento)
+    # # print(type(argumento))
     tipo = procesarType(data, argumento, ts)
-    
+    # # print(tipo)
+    # # print(type(tipo))
     # Comprobamos si tipo es de tipo "num"
     if isinstance(tipo, BasicType) and tipo.type == "num":
         respuesta = funcionEval(data, argumento, ts)
@@ -865,6 +870,7 @@ def procesarLength(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> str
         simbolo = ts.obtener_simbolo(argumento)
         arrTemp = simbolo.expression
         if isinstance(arrTemp, list):
+            # #print(Number(len(arrTemp)))
             return Number(len(arrTemp))
         else:
             return f"ERROR: identificador {argumento} no es un arreglo"
@@ -876,17 +882,24 @@ def procesarSum(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> int or
     if ts.existe_simbolo_en_ts(argumento):
         simbolo = ts.obtener_simbolo(argumento)
         arrTemp = simbolo.expression
-        tipo = simbolo.type
-        tipoBasico = tipo.expression
 
-        # if isinstance(arrTemp, list) and isinstance(tipo, Grouped) and isinstance(tipoBasico, BasicType) and tipoBasico.type == "num":
-        if isinstance(arrTemp, list) and isinstance(arrTemp[0], Number):
+        tipo = procesarType(data, arrTemp[0], ts)
+
+        # # print(type(arrTemp))
+        # # print(type(tipo))
+        # # print(tipo.type)
+
+        # Comprobamos si tipo es de tipo "num"
+        if isinstance(arrTemp, list) and isinstance(tipo, BasicType) and tipo.type == "num":
 
             suma = 0
             
             for i in range(0, len(arrTemp)):
-                suma = suma + arrTemp[i].value
+                varTemp = funcionEval(data, arrTemp[i], ts).value
+                # print(varTemp)
+                suma = suma + varTemp
             
+            # # print("qlq")
             return Number(suma)    
 
         else:
@@ -898,8 +911,13 @@ def procesarAvg(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> str:
     suma = procesarSum(data, argumento, ts)
     length = procesarLength(data, argumento, ts) 
 
-    if isinstance(suma, int) and isinstance(length, int):
-        return Number(suma / length)
+    tipoSuma = procesarType(data, suma, ts)
+    tipoLength = procesarType(data, length, ts)
+
+    # Comprobamos si tipoSuma y tipoLength son de tipo "num"
+    if (isinstance(tipoSuma, BasicType) and tipoSuma.type == "num") and (isinstance(tipoLength, BasicType) and tipoLength.type == "num"):
+        return Number(suma.value / length.value)
+
     else:
         return f"ERROR: la expresion ‘{argumento}' no es de tipo [num]"
 
@@ -986,6 +1004,9 @@ def funcionExecute(input: str, instruccion: Definition or Assignment, ts: TablaD
 
 # funcionEval recibe una expresion y la evalua
 def funcionEval(input: str, instruccion, ts: TablaDeSimbolos) -> str or Number or Boolean:
+    # print(instruccion)
+    # print(type(instruccion))
+
     if isinstance(instruccion, BinOp):
         return procesarOperacionBinaria(input, instruccion, ts)
 
@@ -1009,7 +1030,12 @@ def funcionEval(input: str, instruccion, ts: TablaDeSimbolos) -> str or Number o
 
     elif isinstance(instruccion, Function):
         return procesarFuncion(input, instruccion, ts)
+
+    elif isinstance(instruccion, list):
+        return procesarLista(input, instruccion, ts)
+
     else: 
+        # print("Hola Dani")
         return f"ERROR: instrucción no válida."
 
 # Process
@@ -1017,11 +1043,11 @@ def process(input: str) -> str:
 
     # Llamamos a parser con el input ingresado por el usuario
     instruccion = parse(input)
-    # print(input)
-    # print(type(instruccion))
-    # print(instruccion)
-    # print(type(instruccion.id))
-    # print(type(instruccion.index))
+    # # print(input)
+    # # print(type(instruccion))
+    # # print(instruccion)
+    # # print(type(instruccion.id))
+    # # print(type(instruccion.index))
 
     if isinstance(instruccion, Definition) or isinstance(instruccion, Assignment):
         return funcionExecute(input, instruccion, ts_global)
@@ -1034,4 +1060,10 @@ def process(input: str) -> str:
             return respuesta
 
         else:
+            # # print(type(respuesta))
+            # # print(type(respuesta.left))
+            # # print(type(respuesta.left.left))
+            # # print(type(respuesta.left.right))
+            # # print(type(respuesta.right))
+
             return f"OK: {input} ==> {respuesta}"

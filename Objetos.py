@@ -19,6 +19,7 @@ class BinOp(Expr):
         if self.op == ',':
             return f"{self.left}{self.op} {self.right}"
         else:
+            # return f'{self.left} {self.op} {self.right}'
             return f'({self.left} {self.op} {self.right})'
         # elif self.op == '*':
         #     return f"Mult({self.left},{self.right})"
