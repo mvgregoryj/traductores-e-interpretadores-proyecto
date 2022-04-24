@@ -1,0 +1,51 @@
+num valor := 4*12;
+num var := 5@5;
+num i := 3;
+num g := i;
+g := (3+5);
+bool cualquier := 5=5;
+num susy := -56;
+[num] arreglo := [1, 2, 3, 4, 5, 9, 4, 0];
+2000 - 802
+
+bool h := false;
+!h
+[bool] booleanos := [true,false,true];
+booleanos
+[bool] booleanos2 := [false,true,false];
+booleanos2
+booleanos[0] && booleanos2[0]
+booleanos[0] || booleanos2[0]
+num m:= 956;
+num l := 35;
+m-l
+m*l
+m+l
+m^l
+m<=l
+m>=l
+for i in range
+[num] lou := [10];
+[num] lilo := [lou];
+num timmy := 2+4*7*67;
+floor(453453.2423)
+if(2<6,true,false)
+type(timmy)
+[num] darry := [2,3,4];
+type(darry)
+ltype(darry)
+length(darry)
+sum(darry)
+pi()
+avg(darry)
+reset()
+for()
+ln(23323)
+exp(45)
+sin(3.14)
+cos(0.5)
+tan(45)
+num guacala := (pi()*6)+ln(34)-(sin(3)*4);
+[bool] bulian := [true,false,false];
+type(bulian[0])
+type(bulian)

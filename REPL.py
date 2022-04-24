@@ -46,10 +46,6 @@ def load (data: str, arrayTuplas: list) -> str:
                 mensaje = mensajeLexer(data, arrayTokens, arrayErrores)
                 mensajeLoad = mensajeLoad + f"{mensaje}\n"
 
-                # Si la respuesta da ERROR se guarda el nombre del archivo, la linea y el mensaje en una lista de tuplas
-                if mensaje.startswith('ERROR: ') or mensaje.startswith('Syntax error '):
-                    arrayTuplas.append((nombreArchivo, numline, mensaje))
-
             # Archivo contiene otros nombres de archivos dentro
             elif data.startswith('.load'):
                 mensaje = load(data, arrayTuplas)       
@@ -68,13 +64,21 @@ def load (data: str, arrayTuplas: list) -> str:
                 mensaje = VM.testParser(data)
                 mensajeLoad = mensajeLoad + f"{mensaje}\n"
                 
-                if mensaje.startswith('Syntax error:'):
-                    arrayTuplas.append((nombreArchivo, numline, mensaje))
-                
-            # Si no se ingresa alguno de los comandos especificados se devuelve ERROR
-            elif not data.startswith('.lex') or not data.startswith('.load') or not data.startswith('.failed') or not data.startswith('.reset') or not data.startswith('.ast'):
-                arrayTuplas.append((nombreArchivo, numline, f"ERROR: interpretación no implementada"))
-                mensajeLoad = mensajeLoad + f"ERROR: interpretación no implementada\n"
+            else:
+                mensaje = VM.process(data)
+                mensajeLoad = mensajeLoad + f"{mensaje}\n"
+    
+            
+            # # Si no se ingresa alguno de los comandos especificados se devuelve ERROR
+            # elif not data.startswith('.lex') or not data.startswith('.load') or not data.startswith('.failed') or not data.startswith('.reset') or not data.startswith('.ast'):
+            #     arrayTuplas.append((nombreArchivo, numline, f"ERROR: interpretación no implementada"))
+            #     mensajeLoad = mensajeLoad + f"ERROR: interpretación no implementada\n"
+
+
+            # Si la respuesta da ERROR se guarda el nombre del archivo, la linea y el mensaje en una lista de tuplas
+            if mensaje.startswith('ERROR:'):
+                arrayTuplas.append((nombreArchivo, numline, mensaje))
+
 
     file1.close()
 

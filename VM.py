@@ -14,7 +14,6 @@ import time
 
 ts_global = TablaDeSimbolos()
 arr = []
-# arrayErroresGlobal = []
 
 
 # Función interna que construye una secuencia de tokens
@@ -187,20 +186,9 @@ def ejecutamosParseador():
 
     # Construimos el objecto lexer y el arreglo de errores
     tokens, lexer, arrayErrores = ejecutarLexer()
-
-    # print("Linea 191")
-    # print(arrayErrores)
     
     global arr
-    # global arrayErroresGlobal
-    
-    # # Indicamos en el arrayErroresGlobal los errores del lexer:
-    # for error in arrayErrores:
-        # arrayErroresGlobal.append(error)
-    
-    # print("Linea 201")
-    # # print(arrayErroresGlobal)
-    
+        
     # # Entrada para el lexer
     # lexer.input(input)
 
@@ -373,22 +361,19 @@ def ejecutamosParseador():
         arr.append(token)               
                         
     # Retornamos el parser de yacc
-    return yacc()
+    return yacc(), arrayErrores
 
-parseador = ejecutamosParseador()
-# print(parseador)
+# print(arreglo)
 
 # Funcion parse:
 # Parse recibe la secuencia de caracteres correspondiente a la entrada 
 # indicada por el usuario y retorna el AST correspondiente
 def parse(input: str):
 
+    parseador , arrayErrores = ejecutamosParseador()
     ast = parseador.parse(input)
 
-    # print("Linea 387")
-    # # print(arrayErroresGlobal)
-
-    return ast
+    return ast, arrayErrores
 
 # Funcion ast2str:
 # Técnicamente, ast2str implementa una traducción. Para simplificar la 
@@ -404,28 +389,27 @@ def ast2str(input: str, ast) -> str:
 def testParser(input: str) -> str:
     
     global arr
-    # global arrayErroresGlobal
     
     # Eliminamos los espacios antes y despues de la expresión
     input = input[4:].strip()
 
     # Colocamos el arreglo vacio
     arr = []
-    # arrayErroresGlobal = []
     
     # Llamamos a parser con el input ingresado por el usuario
-    ast = parse(input)
+    ast, arrayErrores = parse(input)
 
-    # qlq
-    # print(arr)
-    # # print(arrayErroresGlobal)
 
-    # Si el arreglo no esta vacio, entonces hubo un error
-    if len(arr) == 0:
+    # Si los arreglos no estan vacios, entonces hubo un error
+    if len(arrayErrores) > 0:
+        return f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"
+    elif len(arr) > 0:
+        return f"ERROR: syntax error {arr[0]}"
+    else:
         astString = ast2str(input, ast)
         return astString
-    else:
-        return f"Syntax error: {arr[0]}"
+
+        
 
 #########################################################
 
@@ -1041,29 +1025,39 @@ def funcionEval(input: str, instruccion, ts: TablaDeSimbolos) -> str or Number o
 # Process
 def process(input: str) -> str:
 
+    global arr
+    # Colocamos el arreglo vacio
+    arr = []
+
     # Llamamos a parser con el input ingresado por el usuario
-    instruccion = parse(input)
+    instruccion, arrayErrores = parse(input)
     # # print(input)
     # # print(type(instruccion))
     # # print(instruccion)
     # # print(type(instruccion.id))
     # # print(type(instruccion.index))
 
-    if isinstance(instruccion, Definition) or isinstance(instruccion, Assignment):
-        return funcionExecute(input, instruccion, ts_global)
-    elif isinstance(instruccion, str) and input.startswith("#"):
-        return ""
-    else:
-        respuesta = funcionEval(input, instruccion, ts_global)
-
-        if isinstance(respuesta, str) and respuesta.startswith("ERROR"):
-            return respuesta
-
+    # Si el arreglo no esta vacio, entonces hubo un error
+    if len(arrayErrores) > 0:
+        return f"ERROR: caracter inválido ({arrayErrores[0]}) en la entrada"
+    elif len(arr) > 0:
+        return f"ERROR: syntax error {arr[0]}"
+    else:   
+        if isinstance(instruccion, Definition) or isinstance(instruccion, Assignment):
+            return funcionExecute(input, instruccion, ts_global)
+        elif isinstance(instruccion, str) and input.startswith("#"):
+            return ""
         else:
-            # # print(type(respuesta))
-            # # print(type(respuesta.left))
-            # # print(type(respuesta.left.left))
-            # # print(type(respuesta.left.right))
-            # # print(type(respuesta.right))
+            respuesta = funcionEval(input, instruccion, ts_global)
 
-            return f"OK: {input} ==> {respuesta}"
+            if isinstance(respuesta, str) and respuesta.startswith("ERROR"):
+                return respuesta
+
+            else:
+                # # print(type(respuesta))
+                # # print(type(respuesta.left))
+                # # print(type(respuesta.left.left))
+                # # print(type(respuesta.left.right))
+                # # print(type(respuesta.right))
+
+                return f"OK: {input} ==> {respuesta}"
