@@ -88,6 +88,7 @@ class Grouped(Expr):
 class ArrayExpression(Expr):
     def __init__(self, id: Identifier, index: Number):
         self.id = id
+        self.value = id.value
         self.index = index
 
     def __repr__(self):
@@ -256,6 +257,18 @@ class RepresentacionDeVariables():
             self.simbolos[id] = (tuplaTemp[0], tuplaTemp[1], tuplaTemp[2], rvalue)
         else:
             print ("ERROR: identificador ", identificador, " no se encuentra en la representacion de variables")
+
+    # def actualizar_CVALUE(self, identificador: Identifier, cvalue: Number or Boolean):
+    #     """
+    #     Actualiza el CVALUE de la representacion de variables.
+    #     """
+    #     tuplaTemp = self.obtener_simbolo(identificador)
+
+    #     if self.existe_simbolo_en_rv(identificador):
+    #         id = str(tuplaTemp[0].value)
+    #         self.simbolos[id] = (tuplaTemp[0], cvalue, tuplaTemp[2], tuplaTemp[3])
+    #     else:
+    #         print ("ERROR: identificador ", identificador, " no se encuentra en la representacion de variables")
 
     def actualizar_ultimo_ciclo(self, ciclo: int):
         """

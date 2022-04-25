@@ -230,15 +230,23 @@ def ejecutamosParseador():
 
     def p_definicion(p):
         '''
-        definicion : tipo identificador TkAssign expresion TkSemicolon
+        definicion : tipo lvalues TkAssign expresion TkSemicolon
         '''
         p[0] = Definition(p[1], p[2], p[4])
 
     def p_asignacion(p):
         '''
-        asignacion : identificador TkAssign expresion TkSemicolon
+        asignacion : lvalues TkAssign expresion TkSemicolon
         '''
         p[0] = Assignment(p[1], p[3])
+
+    def p_lvalues(p):
+        '''
+        lvalues : identificador
+                | expresionArreglo
+
+        '''
+        p[0] = p[1]
 
     def p_tipo(p):
         '''
@@ -264,6 +272,7 @@ def ejecutamosParseador():
                   | TkOpenPar expresion TkClosePar
                   | TkOpenBrace expresion TkCloseBrace
                   | TkSingleQuote expresion TkSingleQuote 
+                  | TkOpenBracket expresionArgs TkCloseBracket
                   | expresion TkPower expresion
                   | TkPlus expresion %prec TkUPlus
                   | TkMinus expresion %prec TkUMinus
@@ -298,6 +307,8 @@ def ejecutamosParseador():
                 p[0] = Grouped("Brace", p[1], p[2], p[3])
             elif (p[1]=="'" and p[3]=="'"):
                 p[0] = Grouped("SingleQuote", p[1], p[2], p[3])
+            elif (p[1]=='[' and p[3]==']'):
+                p[0] = Grouped("Bracket", p[1], p[2], p[3])
             else:
                 p[0] = BinOp(p[1], p[2], p[3])
     
@@ -325,14 +336,10 @@ def ejecutamosParseador():
     
     def p_expresionArreglo(p):
         '''
-        expresionArreglo : TkOpenBracket expresionArgs TkCloseBracket
-                         | identificador TkOpenBracket expresion TkCloseBracket
+        expresionArreglo : identificador TkOpenBracket expresion TkCloseBracket
+                         | expresionArreglo TkOpenBracket expresion TkCloseBracket
         '''
-        if len(p) == 4:
-            if (p[1]=='[' and p[3]==']'):
-                p[0] = Grouped("Bracket", p[1], p[2], p[3])
-        else:
-            p[0] = ArrayExpression(p[1], p[3])
+        p[0] = ArrayExpression(p[1], p[3])
                 
     def p_expresionArgs(p):
         '''
@@ -434,22 +441,26 @@ def procesarDefinicion(data: str, instruccion: Definition, ts: TablaDeSimbolos) 
             if f"{resultado}".startswith("ERROR"):
                 return resultado
             else:
-                # Se actualiza el simbolo en la tabla de simbolos resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
-                simbolo = Definition(instruccion.type, instruccion.id, resultado)
-                ts.agregar_simbolo(simbolo)
+                if isinstance(instruccion.id, Identifier):
+                    # Se actualiza el simbolo en la tabla de simbolos resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
+                    simbolo = Definition(instruccion.type, instruccion.id, resultado)
+                    ts.agregar_simbolo(simbolo)
 
 
-                computeCycle += 1               # Se incrementa el Ciclo de Computo
+                    computeCycle += 1               # Se incrementa el Ciclo de Computo
 
-                # Actualiza el ultimo Ciclo de Computo de la representacion de variables.
-                rv_global.actualizar_ultimo_ciclo(computeCycle)
+                    # Actualiza el ultimo Ciclo de Computo de la representacion de variables.
+                    rv_global.actualizar_ultimo_ciclo(computeCycle)
 
-                # Se actualiza la representacion de variables - 4 tupla.
-                tuplaTemp = (instruccion.id, resultado, computeCycle, None)
-                rv_global.agregar_simbolo(tuplaTemp)
+                    # Se actualiza la representacion de variables - 4 tupla.
+                    tuplaTemp = (instruccion.id, resultado, computeCycle, None)
+                    rv_global.agregar_simbolo(tuplaTemp)
 
-                # return f"ACK: {simbolo.type} {simbolo.id} := {simbolo.expression};"
-                return True
+                    # return f"ACK: {simbolo.type} {simbolo.id} := {simbolo.expression};"
+                    return True
+                elif isinstance(instruccion.id, ArrayExpression):
+                    return f"ERROR: no se puede definir la casilla de arreglo"
+                    
         else: 
             return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato {instruccion.type}"
 
@@ -458,21 +469,24 @@ def procesarAsignacion(data: str, instruccion: Assignment, ts: TablaDeSimbolos) 
     global computeCycle
     global rv_global
 
-    if ts.existe_simbolo_en_ts(instruccion.id):
+    resultado = funcionEval(data, instruccion.expression, ts)
 
-        resultado = funcionEval(data, instruccion.expression, ts)
-        tipoResultado = procesarType(data, resultado, ts)
+    # Si resultado es un ERROR no se agrega a la tabla de simbolos.
+    if f"{resultado}".startswith("ERROR"):
+        return resultado
 
-        simbolo = ts.obtener_simbolo(instruccion.id)
-        tipoSimbolo = simbolo.type
+    if isinstance(instruccion.id, Identifier):
 
-        if tipoResultado.type == tipoSimbolo.type:
+        if ts.existe_simbolo_en_ts(instruccion.id):
+            
+            tipoResultado = procesarType(data, resultado, ts)
 
-            # Si resultado es un ERROR no se agrega a la tabla de simbolos.
-            if f"{resultado}".startswith("ERROR"):
-                return resultado
-            else:
-            # Se actualiza el simbolo en la tabla de simbolos, el resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
+            simbolo = ts.obtener_simbolo(instruccion.id)
+            tipoSimbolo = simbolo.type
+
+            if f"{tipoResultado}" == f"{tipoSimbolo}":
+                    
+                # Se actualiza el simbolo en la tabla de simbolos, el resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
                 simbolo = Assignment(instruccion.id, resultado)
                 ts.actualizar_simbolo(simbolo)
 
@@ -487,10 +501,62 @@ def procesarAsignacion(data: str, instruccion: Assignment, ts: TablaDeSimbolos) 
 
                 # return f"ACK: {instruccion.id} := {resultado};"
                 return True
-        else: 
-            return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato de {instruccion.id}"
-    else:
-        return f"ERROR: identificador {instruccion.id} no definido"
+
+            else: 
+                return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato de {instruccion.id}"
+        else:
+            return f"ERROR: identificador {instruccion.id} no definido"
+
+    elif isinstance(instruccion.id, ArrayExpression):
+
+        if ts.existe_simbolo_en_ts(instruccion.id.id):
+
+            tipoResultado = procesarType(data, resultado, ts)
+
+            simbolo = ts.obtener_simbolo(instruccion.id.id)
+            listaTemp = simbolo.expression
+
+            indice = funcionEval(data, instruccion.id.index, ts)
+
+            try:
+                elementoAReemplazar = listaTemp[indice.value]
+            except (IndexError, TypeError):
+                return f"ERROR: indice fuera de rango"
+
+            tipoElementoAReemplazar = procesarType(data, elementoAReemplazar, ts)
+
+            # print(tipoResultado)
+            # print(tipoElementoAReemplazar)
+
+            if f"{tipoResultado}" == f"{tipoElementoAReemplazar}":
+
+                if isinstance(indice, Number):
+                    try:
+                        listaTemp[indice.value] = resultado
+                        # Se actualiza el simbolo en la tabla de simbolos, el resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
+                        simbolo = Assignment(instruccion.id.id, listaTemp)
+                        ts.actualizar_simbolo(simbolo)
+
+                        computeCycle += 1               # Se incrementa el Ciclo de Computo
+                        
+                        # Actualiza el ultimo Ciclo de Computo de la representacion de variables.
+                        rv_global.actualizar_ultimo_ciclo(computeCycle)
+
+                        # Se actualiza la representacion de variables - 4 tupla.
+                        tuplaTemp = (instruccion.id.id, listaTemp, computeCycle, None)
+                        rv_global.actualizar_simbolo(tuplaTemp)
+
+                        # return f"ACK: {instruccion.id} := {resultado};"
+                        return True
+
+                    except (IndexError, TypeError):
+                        return f"ERROR: indice fuera de rango"
+                else:
+                    return f"ERROR: {indice} no es un numero"
+            else: 
+                return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato de {instruccion.id}"
+        else:
+            return f"ERROR: identificador {instruccion.id.id} no definido"
     
 def procesarOperacionBinaria(data: str, instruccion: BinOp, ts: TablaDeSimbolos) -> str or Number or Boolean:
 
@@ -737,7 +803,7 @@ def procesarArregloExpresion(data: str, instruccion: ArrayExpression, ts: TablaD
                         respuesta = RVALUE[indice.value]
                         return respuesta
 
-                    except IndexError:
+                    except (IndexError, TypeError):
                         return f"ERROR: indice fuera de rango"
                 else:
                     return f"ERROR: {indice} no es un numero"
@@ -751,7 +817,7 @@ def procesarArregloExpresion(data: str, instruccion: ArrayExpression, ts: TablaD
                         respuesta = RVALUE[indice.value]
                         return respuesta
 
-                    except IndexError:
+                    except (IndexError, TypeError):
                         return f"ERROR: indice fuera de rango"
                 else:
                     return f"ERROR: {indice} no es un numero"
@@ -959,9 +1025,15 @@ def procesarLtype(data: str, argumento, ts: TablaDeSimbolos) -> str:
 
 # Funcion procesarReset, elimina todas las variables definidas por el usuario en la VM
 def procesarReset(ts: TablaDeSimbolos) -> str:
+
+    global rv_global
+
     try:
-        resultado = ts.limpiar_ts()
-        return f"{resultado}".lower()
+        resultadoTS = ts.limpiar_ts()
+        resultadoRV = rv_global.limpiar_rv()
+
+        if resultadoTS and resultadoRV:
+            return f"{True}".lower()
     except:
         return f"{False}".lower()
 
@@ -1190,7 +1262,7 @@ def procesarFormula(data: str, argumento: Identifier or ArrayExpression, ts: Tab
                             respuesta = arreglo[indice.value]
                             return f"{respuesta}"
 
-                        except IndexError:
+                        except (IndexError, TypeError):
                             return f"ERROR: indice fuera de rango"
                     else:
                         return f"ERROR: {indice} no es un numero"
