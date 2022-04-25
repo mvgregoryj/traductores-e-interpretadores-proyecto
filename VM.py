@@ -511,7 +511,7 @@ def procesarOperacionBinaria(data: str, instruccion: BinOp, ts: TablaDeSimbolos)
     elif isinstance(expLeft, Number) & isinstance(expRight, Number):
         if instruccion.op == "^" : respuesta = Number(expLeft.value ** expRight.value)
         elif instruccion.op == "*" : respuesta = Number(expLeft.value * expRight.value)
-        elif instruccion.op == "/" : respuesta = Number(expLeft.value // expRight.value)
+        elif instruccion.op == "/" : respuesta = Number(expLeft.value / expRight.value)
         elif instruccion.op == "%" : respuesta = Number(expLeft.value % expRight.value)
         elif instruccion.op == "+" : respuesta = Number(expLeft.value + expRight.value)
         elif instruccion.op == "-" : respuesta = Number(expLeft.value - expRight.value)
@@ -600,7 +600,7 @@ def procesarIdentificador(data: str, instruccion: Identifier, ts: TablaDeSimbolo
     # Verifiquemos que el identificador exista en la representacion de variables.
     if rv_global.existe_simbolo_en_rv(instruccion):
 
-        # Obtenemos el RVALUE de la Representacion de Variables, si es None entonces se obtiene el CVALUE se evalua y se almacena el RVALUE
+        # Obtenemos el RVALUE de la Representacion de Variables, si es None entonces se obtiene el CVALUE se evalua y se almacena en el RVALUE
         tuplaTemp = rv_global.obtener_simbolo(instruccion)
         RVALUE = tuplaTemp[3]
 
@@ -610,7 +610,7 @@ def procesarIdentificador(data: str, instruccion: Identifier, ts: TablaDeSimbolo
             rv_global.actualizar_RVALUE(instruccion, RVALUE)
 
             return RVALUE
-            
+
         else:
             return RVALUE
     else:
@@ -715,27 +715,72 @@ def procesarArgsOrElemArray(data, instruccion, ts, arregloTemp) -> list or str:
     return arregloTemp
 
 def procesarArregloExpresion(data: str, instruccion: ArrayExpression, ts: TablaDeSimbolos) -> Number or Boolean or list or str:
-    # Verifiquemos que el identificador exista en la tabla de simbolos
-    if ts.existe_simbolo_en_ts(instruccion.id):
-        definicionArreglo = ts.obtener_simbolo(instruccion.id)
-        arreglo = definicionArreglo.expression
 
-        if isinstance(arreglo, list):
-            indice = funcionEval(data, instruccion.index, ts)
-            if isinstance(indice, Number):
-                try:
-                    # # print(type(arreglo[indice.value]))
-                    respuesta = arreglo[indice.value]
-                    return funcionEval(data, respuesta, ts)
+    global rv_global
 
-                except IndexError:
-                    return f"ERROR: indice fuera de rango"
+    # Verifiquemos que el identificador exista en la representacion de variables.
+    if rv_global.existe_simbolo_en_rv(instruccion.id):
+
+        # Obtenemos el RVALUE de la Representacion de Variables, si es None entonces se obtiene el CVALUE se evalua y se almacena en el RVALUE
+        tuplaTemp = rv_global.obtener_simbolo(instruccion.id)
+        RVALUE = tuplaTemp[3]
+
+        if RVALUE == None:
+            CVALUE = tuplaTemp[1]
+            RVALUE = funcionEval(data, CVALUE, ts)
+            rv_global.actualizar_RVALUE(instruccion.id, RVALUE)
+
+            if isinstance(RVALUE, list):
+                indice = funcionEval(data, instruccion.index, ts)
+                if isinstance(indice, Number):
+                    try:
+                        respuesta = RVALUE[indice.value]
+                        return respuesta
+
+                    except IndexError:
+                        return f"ERROR: indice fuera de rango"
+                else:
+                    return f"ERROR: {indice} no es un numero"
             else:
-                return f"ERROR: {indice} no es un numero"
+                return f"ERROR: {RVALUE} no es un arreglo"
         else:
-            return f"ERROR: {arreglo} no es un arreglo"
+            if isinstance(RVALUE, list):
+                indice = funcionEval(data, instruccion.index, ts)
+                if isinstance(indice, Number):
+                    try:
+                        respuesta = RVALUE[indice.value]
+                        return respuesta
+
+                    except IndexError:
+                        return f"ERROR: indice fuera de rango"
+                else:
+                    return f"ERROR: {indice} no es un numero"
+            else:
+                return f"ERROR: {RVALUE} no es un arreglo"
     else:
         return f"ERROR: variable {instruccion.id} no definida"
+
+    # # Verifiquemos que el identificador exista en la tabla de simbolos
+    # if ts.existe_simbolo_en_ts(instruccion.id):
+    #     definicionArreglo = ts.obtener_simbolo(instruccion.id)
+    #     arreglo = definicionArreglo.expression
+
+    #     if isinstance(arreglo, list):
+    #         indice = funcionEval(data, instruccion.index, ts)
+    #         if isinstance(indice, Number):
+    #             try:
+    #                 # # print(type(arreglo[indice.value]))
+    #                 respuesta = arreglo[indice.value]
+    #                 return funcionEval(data, respuesta, ts)
+
+    #             except IndexError:
+    #                 return f"ERROR: indice fuera de rango"
+    #         else:
+    #             return f"ERROR: {indice} no es un numero"
+    #     else:
+    #         return f"ERROR: {arreglo} no es un arreglo"
+    # else:
+    #     return f"ERROR: variable {instruccion.id} no definida"
 
 def procesarBoolean(data: str, instruccion: Boolean, ts: TablaDeSimbolos) -> Boolean:
     return instruccion
@@ -954,33 +999,85 @@ def procesarLength(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> str
 
 # Funcion procesarSum retorna la suma de un arreglo de números
 def procesarSum(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> int or str:
-    if ts.existe_simbolo_en_ts(argumento):
-        simbolo = ts.obtener_simbolo(argumento)
-        arrTemp = simbolo.expression
+    # if ts.existe_simbolo_en_ts(argumento):
+    #     simbolo = ts.obtener_simbolo(argumento)
+    #     arrTemp = simbolo.expression
 
-        tipo = procesarType(data, arrTemp[0], ts)
+    #     tipo = procesarType(data, arrTemp[0], ts)
 
-        # # print(type(arrTemp))
-        # # print(type(tipo))
-        # # print(tipo.type)
+    #     # # print(type(arrTemp))
+    #     # # print(type(tipo))
+    #     # # print(tipo.type)
 
-        # Comprobamos si tipo es de tipo "num"
-        if isinstance(arrTemp, list) and isinstance(tipo, BasicType) and tipo.type == "num":
+    #     # Comprobamos si tipo es de tipo "num"
+    #     if isinstance(arrTemp, list) and isinstance(tipo, BasicType) and tipo.type == "num":
 
-            suma = 0
+    #         suma = 0
             
-            for i in range(0, len(arrTemp)):
-                varTemp = funcionEval(data, arrTemp[i], ts).value
-                # print(varTemp)
-                suma = suma + varTemp
+    #         for i in range(0, len(arrTemp)):
+    #             varTemp = funcionEval(data, arrTemp[i], ts).value
+    #             # print(varTemp)
+    #             suma = suma + varTemp
             
-            # # print("qlq")
-            return Number(suma)    
+    #         # # print("qlq")
+    #         return Number(suma)    
 
+    #     else:
+    #         return f"ERROR: el arreglo {argumento} no es de tipo [num]"
+    # else:
+    #     return f"ERROR: identificador {argumento} no esta definido"
+
+    global rv_global
+
+    # Verifiquemos que el identificador exista en la representacion de variables.
+    if rv_global.existe_simbolo_en_rv(argumento):
+
+        # Obtenemos el RVALUE de la Representacion de Variables, si es None entonces se obtiene el CVALUE se evalua y se almacena en el RVALUE
+        tuplaTemp = rv_global.obtener_simbolo(argumento)
+        RVALUE = tuplaTemp[3]
+
+        if RVALUE == None:
+            CVALUE = tuplaTemp[1]
+            RVALUE = funcionEval(data, CVALUE, ts)
+            rv_global.actualizar_RVALUE(argumento, RVALUE)
+
+            tipo = procesarType(data, RVALUE[0], ts)
+
+            # Comprobamos si tipo es de tipo "num"
+            if isinstance(RVALUE, list) and isinstance(tipo, BasicType) and tipo.type == "num":
+                    
+                suma = 0
+                
+                for i in range(0, len(RVALUE)):
+                    varTemp = RVALUE[i].value
+                    # print(varTemp)
+                    suma = suma + varTemp
+                    
+                # # print("qlq")
+                return Number(suma)
+
+            else:
+                return f"ERROR: el arreglo {argumento} no es de tipo [num]"
         else:
-            return f"ERROR: el arreglo {argumento} no es de tipo [num]"
+            tipo = procesarType(data, RVALUE[0], ts)
+
+            # Comprobamos si tipo es de tipo "num"
+            if isinstance(RVALUE, list) and isinstance(tipo, BasicType) and tipo.type == "num":
+                    
+                suma = 0
+                
+                for i in range(0, len(RVALUE)):
+                    varTemp = RVALUE[i].value
+                    # print(varTemp)
+                    suma = suma + varTemp
+                    
+                # # print("qlq")
+                return Number(suma)
+
+            else:
+                return f"ERROR: el arreglo {argumento} no es de tipo [num]"
     else:
-        return f"ERROR: identificador {argumento} no esta definido"
+        return f"ERROR: identificador {argumento} no definido"
 
 def procesarAvg(data: str, argumento: Identifier, ts: TablaDeSimbolos) -> str:
     suma = procesarSum(data, argumento, ts)
