@@ -14,8 +14,8 @@ import time
 
 ts_global = TablaDeSimbolos()
 arr = []
-computeCycle = 42
-
+computeCycle = 41
+rv_global = RepresentacionDeVariables()
 
 
 # Función interna que construye una secuencia de tokens
@@ -418,6 +418,7 @@ def testParser(input: str) -> str:
 def procesarDefinicion(data: str, instruccion: Definition, ts: TablaDeSimbolos) -> str:
 
     global computeCycle
+    global rv_global
 
     if ts.existe_simbolo_en_ts(instruccion.id):
         return f"ERROR: identificador {instruccion.id} ya está definido"
@@ -433,20 +434,29 @@ def procesarDefinicion(data: str, instruccion: Definition, ts: TablaDeSimbolos) 
             if f"{resultado}".startswith("ERROR"):
                 return resultado
             else:
-            # Se actualiza el simbolo en la tabla de simbolos resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
+                # Se actualiza el simbolo en la tabla de simbolos resultado es del tipo Number, Boolean o list gracias al return de funcionEval                
                 simbolo = Definition(instruccion.type, instruccion.id, resultado)
                 ts.agregar_simbolo(simbolo)
 
+
                 computeCycle += 1               # Se incrementa el Ciclo de Computo
 
-                return f"ACK: {simbolo.type} {simbolo.id} := {simbolo.expression};"
-        else: 
-            return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato de {instruccion.type}"
+                # Actualiza el ultimo Ciclo de Computo de la representacion de variables.
+                rv_global.actualizar_ultimo_ciclo(computeCycle)
 
+                # Se actualiza la representacion de variables - 4 tupla.
+                tuplaTemp = (instruccion.id, resultado, computeCycle, None)
+                rv_global.agregar_simbolo(tuplaTemp)
+
+                # return f"ACK: {simbolo.type} {simbolo.id} := {simbolo.expression};"
+                return True
+        else: 
+            return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato {instruccion.type}"
 
 def procesarAsignacion(data: str, instruccion: Assignment, ts: TablaDeSimbolos) -> str:
 
     global computeCycle
+    global rv_global
 
     if ts.existe_simbolo_en_ts(instruccion.id):
 
@@ -467,9 +477,16 @@ def procesarAsignacion(data: str, instruccion: Assignment, ts: TablaDeSimbolos) 
                 ts.actualizar_simbolo(simbolo)
 
                 computeCycle += 1               # Se incrementa el Ciclo de Computo
-                # print(computeCycle)
+                
+                # Actualiza el ultimo Ciclo de Computo de la representacion de variables.
+                rv_global.actualizar_ultimo_ciclo(computeCycle)
 
-                return f"ACK: {instruccion.id} := {resultado};"
+                # Se actualiza la representacion de variables - 4 tupla.
+                tuplaTemp = (instruccion.id, resultado, computeCycle, None)
+                rv_global.actualizar_simbolo(tuplaTemp)
+
+                # return f"ACK: {instruccion.id} := {resultado};"
+                return True
         else: 
             return f"ERROR: tipo de dato de la expresión {instruccion.expression} no coincide con el tipo de dato de {instruccion.id}"
     else:
@@ -571,12 +588,33 @@ def procesarNumero(data: str, instruccion: Number, ts: TablaDeSimbolos) -> Numbe
     return instruccion
 
 def procesarIdentificador(data: str, instruccion: Identifier, ts: TablaDeSimbolos) -> Number or Boolean or list or str:
-    # Verifiquemos que el identificador exista en la tabla de simbolos
-    if ts.existe_simbolo_en_ts(instruccion):
-        valorEncontrado = ts.obtener_simbolo(instruccion)
-        return funcionEval(data, valorEncontrado.expression, ts)
+    # # Verifiquemos que el identificador exista en la tabla de simbolos
+    # if ts.existe_simbolo_en_ts(instruccion):
+    #     valorEncontrado = ts.obtener_simbolo(instruccion)
+    #     return funcionEval(data, valorEncontrado.expression, ts)
+    # else:
+    #     return f"ERROR: identificador {instruccion} no definido"
+
+    global rv_global
+
+    # Verifiquemos que el identificador exista en la representacion de variables.
+    if rv_global.existe_simbolo_en_rv(instruccion):
+
+        # Obtenemos el RVALUE de la Representacion de Variables, si es None entonces se obtiene el CVALUE se evalua y se almacena el RVALUE
+        tuplaTemp = rv_global.obtener_simbolo(instruccion)
+        RVALUE = tuplaTemp[3]
+
+        if RVALUE == None:
+            CVALUE = tuplaTemp[1]
+            RVALUE = funcionEval(data, CVALUE, ts)
+            rv_global.actualizar_RVALUE(instruccion, RVALUE)
+
+            return RVALUE
+            
+        else:
+            return RVALUE
     else:
-        return f"ERROR: identificador {instruccion} no definido"
+        return f"ERROR: identificador {instruccion} no definido"        
 
 def procesarOperacionUnaria(data: str, instruccion: UnaOp, ts: TablaDeSimbolos) -> str:
     exp = funcionEval(data, instruccion.right, ts)
@@ -1069,7 +1107,12 @@ def procesarFormula(data: str, argumento: Identifier or ArrayExpression, ts: Tab
 # La funcion procesarTick incrementa en la VM el computeCycle. La función regresa el número del nuevo ciclo.
 def procesarTick():
     global computeCycle
-    computeCycle += 1
+    
+    computeCycle += 1               # Se incrementa el Ciclo de Computo
+    
+    # Actualiza el ultimo Ciclo de Computo de la representacion de variables.
+    rv_global.actualizar_ultimo_ciclo(computeCycle)
+
     return Number(computeCycle)
 
 
@@ -1145,7 +1188,13 @@ def process(input: str) -> str:
         return f"ERROR: syntax error {arr[0]}"
     else:   
         if isinstance(instruccion, Definition) or isinstance(instruccion, Assignment):
-            return funcionExecute(input, instruccion, ts_global)
+            respuesta = funcionExecute(input, instruccion, ts_global)
+
+            if isinstance(respuesta, str) and respuesta.startswith("ERROR"):
+                return respuesta
+            elif respuesta == True:
+                return f"ACK: {input}"
+
         elif isinstance(instruccion, str) and input.startswith("#"):
             return ""
         else:

@@ -136,6 +136,9 @@ if __name__ == '__main__':
         elif data == ".ts":
             mensajeVM = f"Tabla de Simbolos = {VM.ts_global}"
 
+        elif data == ".rv":
+            mensajeVM = f"Representacion de Variables = {VM.rv_global}"
+
         else:
             mensajeVM = VM.process(data)
             

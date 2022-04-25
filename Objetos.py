@@ -199,3 +199,79 @@ class TablaDeSimbolos():
 
     def __str__(self) -> str:
         return f"{self.simbolos}"
+
+class RepresentacionDeVariables():
+    """
+    Representacion de variables global que incluye los (simbolos definidos, CVALUE, ultimo Ciclo de Computo, el RVALUE memorizado) se trata de un 4-tupla.
+    """
+    def __init__(self, simbolos = {}):
+        self.simbolos = simbolos
+
+    def agregar_simbolo(self, simbolo: tuple):
+        """
+        Agrega un nuevo simbolo a la representacion de variables.
+        """
+        self.simbolos[str(simbolo[0])] = simbolo
+
+    def existe_simbolo_en_rv(self, identificador: Identifier) -> bool:
+        id = str(identificador.value)
+
+        if id in self.simbolos:
+            return True
+        else:
+            return False
+    
+    def obtener_simbolo(self, identificador: Identifier) -> tuple:
+        """
+        Obtiene un simbolo de la representacion de variables.
+        """
+        id = str(identificador.value)
+
+        if self.existe_simbolo_en_rv(identificador):
+            return self.simbolos[id]
+
+        else:
+            print ("ERROR: identificador ", id, " no se encuentra en la representacion de variables")
+
+    def actualizar_simbolo(self, simbolo: tuple):
+        """
+        Actualiza un simbolo de la representacion de variables.
+        """
+        identificador = simbolo[0]
+        id = str(identificador.value)
+
+        if self.existe_simbolo_en_rv(identificador):
+            self.simbolos[id] = simbolo
+        else:
+            print ("ERROR: identificador ", id, " no se encuentra en la representacion de variables")
+
+    def actualizar_RVALUE(self, identificador: Identifier, rvalue: Number or Boolean):
+        """
+        Actualiza el RVALUE de la representacion de variables.
+        """
+        tuplaTemp = self.obtener_simbolo(identificador)
+
+        if self.existe_simbolo_en_rv(identificador):
+            id = str(tuplaTemp[0].value)
+            self.simbolos[id] = (tuplaTemp[0], tuplaTemp[1], tuplaTemp[2], rvalue)
+        else:
+            print ("ERROR: identificador ", identificador, " no se encuentra en la representacion de variables")
+
+    def actualizar_ultimo_ciclo(self, ciclo: int):
+        """
+        Actualiza el ultimo Ciclo de Computo de la representacion de variables.
+        """
+        for id in self.simbolos:
+            tuplaTemp = self.simbolos[id]
+            self.simbolos[id] = (tuplaTemp[0], tuplaTemp[1], ciclo, None)
+
+    def limpiar_rv(self):
+        """
+        Limpia la tabla de representacion de variables.
+        """
+        self.simbolos = {}
+        
+        return True
+
+    def __str__(self) -> str:
+        return f"{self.simbolos}"
