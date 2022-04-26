@@ -1,0 +1,39 @@
+num m := 4;
+num q := 2;
+num x := 10;
+num y := 0;
+y := m * x + q;
+x := y + 20;
+x := x + 5;
+[num] vector := [x+1, y + 4.2, 'x*y'];
+num a := 8;
+num b := 2;
+num c := 5 * x + y;
+num d := '5 * x + y';
+a
+2^(y+1)
+z
+x := 13;
+z
+formula(z)
+5 * x + y
+num e := ‘floor(10^6 * uniform()) % 6’;
+num f := ‘2 * e’;
+num g := ‘e + f’;
+e
+tick()
+f
+g
+num h := 42;
+num i := ‘h + 25’;
+i
+h := ‘i – 5’;
+i
+[num] j := [ 42, ‘j[0] + 25’ ];
+j
+j[0] := ‘j[1] – 5’; 
+formula(j)
+j[1]
+
+
+

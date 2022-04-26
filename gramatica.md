@@ -7,8 +7,8 @@
 
 <instruccion> -> <definicion> | <asignacion>
 
-<definicion> -> <tipo> <identificador> := <expresion> ;
-<asignacion> -> <identificador> := <expresion> ;
+<definicion> -> <tipo> <lvalues> := <expresion> ;
+<asignacion> -> <lvalues> := <expresion> ;
 
 <tipo> -> <tipoBasico> 
        -> [<tipo>]
@@ -70,8 +70,8 @@
           
 <instruccion> -> <definicion> | <asignacion>
 
-<definicion> -> <tipo> <identificador> TkAssign <expresion> TkSemicolon
-<asignacion> -> <identificador> TkAssign <expresion> TkSemicolon
+<definicion> -> <tipo> <lvalues> TkAssign <expresion> TkSemicolon
+<asignacion> -> <lvalues> TkAssign <expresion> TkSemicolon
 
 <tipo> -> <tipoBasico> 
        -> TkOpenBracket <tipo> TkCloseBracket
@@ -80,12 +80,16 @@
         -> TkNum
         -> TkBool
 
+<lvalues> -> <identificador>
+          -> <expresionArreglo>
+
 <expresion>
         -> <numero>
         -> <identificador>
         -> TkOpenPar <expresion> TkClosePar
         -> TkOpenBrace <expresion> TkCloseBrace
         -> TkSingleQuote <expresion> TkSingleQuote
+        -> TkOpenBracket expresionArgs TkCloseBracket
         -> <expresion> TkPower <expresion>
         -> TkPlus <expresion>
         -> TkMinus <expresion>
@@ -117,9 +121,10 @@
         -> TkFalse
 
 <expresionArreglo>
-        -> TkOpenBracket <expresionArgs> TkCloseBracket
-        #-> <expresion> TkOpenBracket <expresion> TkCloseBracket
         -> <identificador> TkOpenBracket <expresion> TkCloseBracket
+        -> <expresionArreglo> TkOpenBracket <expresion> TkCloseBracket
+        #-> <expresion> TkOpenBracket <expresion> TkCloseBracket
+        #-> <identificador> TkOpenBracket <expresion> TkCloseBracket
 
 <expresionArgs>
         -> 

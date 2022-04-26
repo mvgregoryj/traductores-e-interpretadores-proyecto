@@ -48,9 +48,9 @@ class VMTest(TestCase):
         
         self.assertEqual(testParser(".ast x^y^z"), 'OK: ast("x^y^z") ==> (x ^ (y ^ z))')
         
-        self.assertEqual(testParser(".ast (x+y"), 'Syntax error: Unexpected end of input')
+        self.assertEqual(testParser(".ast (x+y"), 'ERROR: syntax error Unexpected end of input')
 
-        self.assertEqual(testParser(".ast (x*y*("), 'Syntax error: Unexpected end of input')
+        self.assertEqual(testParser(".ast (x*y*("), 'ERROR: syntax error Unexpected end of input')
 
         self.assertEqual(testParser(".ast arreglo = [1, 2, 3, 4, 5, 9, 4, 0]"), 'OK: ast("arreglo = [1, 2, 3, 4, 5, 9, 4, 0]") ==> (arreglo = [1, 2, 3, 4, 5, 9, 4, 0])')
 
@@ -58,11 +58,11 @@ class VMTest(TestCase):
         
         self.assertEqual(testParser(".ast valor = [ x < y, x < z ]"), 'OK: ast("valor = [ x < y, x < z ]") ==> (valor = [(x < y), (x < z)])')
         
-        self.assertEqual(testParser(".ast [num] arreglo := [1, 2, 3, 4, 5, 9, 4, 0]"), 'Syntax error: Unexpected end of input')
+        self.assertEqual(testParser(".ast [num] arreglo := [1, 2, 3, 4, 5, 9, 4, 0]"), 'ERROR: syntax error Unexpected end of input')
   
-        self.assertEqual(testParser(".ast ([num] arreglo := [1, 2, 3, 4, 5, 9, 4, 0]);"), 'Syntax error: TkNum(num) at line 1')    
+        self.assertEqual(testParser(".ast ([num] arreglo := [1, 2, 3, 4, 5, 9, 4, 0]);"), 'ERROR: syntax error TkNum(num)')    
 
-        self.assertEqual(testParser(".ast (arreglo = [1, 2, 3, 4, 5, 9, 4, 0]);"), 'Syntax error: TkSemicolon(;) at line 1') 
+        self.assertEqual(testParser(".ast (arreglo = [1, 2, 3, 4, 5, 9, 4, 0]);"), 'ERROR: syntax error TkSemicolon(;)') 
         
     def test_comments(self):
         self.assertEqual(process("5*5 #lefsefs"), 'OK: 5*5 #lefsefs ==> 25')
@@ -73,51 +73,51 @@ class VMTest(TestCase):
     def test_process(self):
         #self.assertEqual(process("num 'x+y' := 4"), ("OK: num 'x+y' := 4 ==> 4"))
         
-        # self.assertEqual(process("num (x)"), ("ERROR: instrucción no válida."))
+        self.assertEqual(process("num (x)"), ("ERROR: syntax error TkOpenPar(()"))
         
-        self.assertEqual(process("num valor := 4*12;"), 'ACK: num valor := 48;')
+        self.assertEqual(process("num valor := 4*12;"), 'ACK: num valor := 4*12;')
         
-        self.assertEqual(process("num var := 5@5;"), 'ERROR: instrucción no válida.')
+        #self.assertEqual(process("num var := 5@5;"), 'ERROR: caracter inválido ('@') en la entrada')
         
         #self.assertEqual(process("bool it := !g;"), 'ERROR: expresion g no es valida para operaciones unarias.')
         
-        self.assertEqual(process("num what:= (5*4)$2;"), 'ERROR: instrucción no válida.')
+        #self.assertEqual(process("num what:= (5*4)$2;"), 'ERROR: caracter inválido ('$') en la entrada')
         
         self.assertEqual(process("num i := 3;"), 'ACK: num i := 3;')
         
-        self.assertEqual(process("num g := i;"), 'ACK: num g := 3;')
+        self.assertEqual(process("num g := i;"), 'ACK: num g := i;')
         
-        self.assertEqual(process("g := (3+5);"), 'ACK: g := 8;')
+        self.assertEqual(process("g := (3+5);"), 'ACK: g := (3+5);')
         
         self.assertEqual(process("g := [5*5];"), 'ERROR: tipo de dato de la expresión [(5 * 5)] no coincide con el tipo de dato de g')
         
-        self.assertEqual(process("bool cualquier := 5=5;"), 'ACK: bool cualquier := true;')
+        self.assertEqual(process("bool cualquier := 5=5;"), 'ACK: bool cualquier := 5=5;')
         
-        self.assertEqual(process("bool dani := 52<>43;"), 'ACK: bool dani := true;')
+        self.assertEqual(process("bool dani := 52<>43;"), 'ACK: bool dani := 52<>43;')
         
         #self.assertEqual(process("num aaaa:= true = 5;"), 'ERROR: no hay coincidencia de tipo entre true y 5')
         
-        self.assertEqual(process("num bianchi := +56;"), 'ACK: num bianchi := 56;')
+        self.assertEqual(process("num bianchi := +56;"), 'ACK: num bianchi := +56;')
         
         self.assertEqual(process("num sussy := -56;"), 'ACK: num sussy := -56;')
    
-        self.assertEqual(process("num t"), 'ERROR: instrucción no válida.')
+        self.assertEqual(process("num t"), 'ERROR: syntax error Unexpected end of input')
         
         self.assertEqual(process("i+t"), 'ERROR: identificador t no definido')
         
         self.assertEqual(process("num i := 7;"), 'ERROR: identificador i ya está definido')
         
-        self.assertEqual(process("num {x} := 4545345"), 'OK: num {x} := 4545345 ==> 4545345')
+        self.assertEqual(process("num {x} := 4545345"), 'ERROR: syntax error TkOpenBrace({)')
         
         self.assertEqual(process("[num] arreglo := [1, 2, 3, 4, 5, 9, 4, 0];"), 'ACK: [num] arreglo := [1, 2, 3, 4, 5, 9, 4, 0];')
             
         self.assertEqual(process("bool value := true;"), ("ACK: bool value := true;"))
         
-        self.assertEqual(process("bool poo := !true;"), ("ACK: bool poo := false;"))
+        self.assertEqual(process("bool poo := !true;"), ("ACK: bool poo := !true;"))
         
         self.assertEqual(process("2000 - 802"), ("OK: 2000 - 802 ==> 1198"))
         
-        self.assertEqual(process("[num] lista := [3,4,7,1,8];"), 'ACK: [num] lista := [3, 4, 7, 1, 8];')
+        self.assertEqual(process("[num] lista := [3,4,7,1,8];"), 'ACK: [num] lista := [3,4,7,1,8];')
    
         self.assertEqual(process("bool h := false;"), 'ACK: bool h := false;')
    
@@ -127,15 +127,13 @@ class VMTest(TestCase):
         
         self.assertEqual(process("num x := 8;"), 'ACK: num x := 8;')
     
-        #self.assertEqual(process("num z := ‘x + y’;"), 'ACK: num z := x + y;') 
+        #self.assertEqual(process("num z := 'x + y';"), 'ACK: num z := 'x + y';') 
+          
+        #self.assertEqual(process("w := asals;"), 'ERROR: identificador w no definido')
         
-        #self.assertEqual(process("z"), 'OK: z ==> 15')    
+        #self.assertEqual(process("b := aswewe;"), 'ERROR: identificador b no definido')
         
-        self.assertEqual(process("w := asals;"), 'ERROR: identificador w no definido')
-        
-        self.assertEqual(process("b := aswewe;"), 'ERROR: identificador b no definido')
-        
-        self.assertEqual(process("w+b"), 'ERROR: identificador w no definido\nERROR: identificador b no definido')
+        #self.assertEqual(process("w+b"), 'ERROR: identificador w no definido\nERROR: identificador b no definido')
 
         self.assertEqual(process("c := 23;"), 'ERROR: identificador c no definido')
         
@@ -149,11 +147,11 @@ class VMTest(TestCase):
         
         self.assertEqual(process("s*u"), 'ERROR: identificador u no definido')
 
-        self.assertEqual(process("[bool] booleanos := [true,false,true];"), 'ACK: [bool] booleanos := [true, false, true];') 
+        self.assertEqual(process("[bool] booleanos := [true,false,true];"), 'ACK: [bool] booleanos := [true,false,true];') 
 
         self.assertEqual(process("booleanos"), 'OK: booleanos ==> [true, false, true]')
 
-        self.assertEqual(process("[bool] booleanos2 := [false,true,false];"), 'ACK: [bool] booleanos2 := [false, true, false];') 
+        self.assertEqual(process("[bool] booleanos2 := [false,true,false];"), 'ACK: [bool] booleanos2 := [false,true,false];') 
 
         self.assertEqual(process("booleanos2"), 'OK: booleanos2 ==> [false, true, false]')
 
@@ -167,11 +165,11 @@ class VMTest(TestCase):
     
         self.assertEqual(process("booleanos[1] || booleanos2[0]"), 'OK: booleanos[1] || booleanos2[0] ==> false')
 
-        self.assertEqual(process("[num] array:= [1,2,5,10];"), 'ACK: [num] array := [1, 2, 5, 10];')   
+        self.assertEqual(process("[num] array:= [1,2,5,10];"), 'ACK: [num] array:= [1,2,5,10];')   
 
         self.assertEqual(process("array"), 'OK: array ==> [1, 2, 5, 10]')    
 
-        self.assertEqual(process("[num] array2:= [5,2,8,1];"), 'ACK: [num] array2 := [5, 2, 8, 1];')   
+        self.assertEqual(process("[num] array2:= [5,2,8,1];"), 'ACK: [num] array2:= [5,2,8,1];')   
         
         self.assertEqual(process("array2"), 'OK: array2 ==> [5, 2, 8, 1]')
 
@@ -195,7 +193,7 @@ class VMTest(TestCase):
 
         self.assertEqual(process("m:= 956;"), 'ERROR: identificador m no definido')
         
-        self.assertEqual(process("num m:= 956;"), 'ACK: num m := 956;')
+        self.assertEqual(process("num m:= 956;"), 'ACK: num m:= 956;')
     
         self.assertEqual(process("num l := 35;"), 'ACK: num l := 35;')
         
@@ -211,9 +209,9 @@ class VMTest(TestCase):
        
         self.assertEqual(process("m^l"), 'OK: m^l ==> 207026638089023476630104801994701520682553810061823759561503427825211695844847616952310042806390332850176')
         
-        self.assertEqual(process("m/l"), 'OK: m/l ==> 27')
+        self.assertEqual(process("m/l"), 'OK: m/l ==> 27.314285714285713')
         
-        self.assertEqual(process("m\l"), 'ERROR: instrucción no válida.')
+        #self.assertEqual(process("m\l"), 'ERROR: caracter inválido ('\\') en la entrada')
        
         self.assertEqual(process("m<l"), 'OK: m<l ==> false')
         
@@ -223,33 +221,33 @@ class VMTest(TestCase):
 
         self.assertEqual(process("m>=l"), 'OK: m>=l ==> true')
 
-        self.assertEqual(process("m:= 70;"), 'ACK: m := 70;')
+        self.assertEqual(process("m:= 70;"), 'ACK: m:= 70;')
 
-        self.assertEqual(process("m/l"), 'OK: m/l ==> 2')    
+        self.assertEqual(process("m/l"), 'OK: m/l ==> 2.0')    
     
-        self.assertEqual(process("for i in range"), 'ERROR: instrucción no válida.')
+        self.assertEqual(process("for i in range"), 'ERROR: syntax error TkId(i)')
         
         self.assertEqual(process("[num] lou := [10];"), 'ACK: [num] lou := [10];')
         
-        self.assertEqual(process("[num] tom := [3$3];"), 'ERROR: instrucción no válida.')
+        #self.assertEqual(process("[num] tom := [3$3];"), 'ERROR: caracter inválido ('$') en la entrada')
         
-        self.assertEqual(process("[num] lilo := [lou];"), 'ACK: [num] lilo := [[10]];')
+        self.assertEqual(process("[num] lilo := [lou];"), 'ACK: [num] lilo := [lou];')
         
         self.assertEqual(process("[bool] zayn := [true];"), 'ACK: [bool] zayn := [true];')
         
-        self.assertEqual(process("[bool] ziam := [zayn];"), 'ACK: [bool] ziam := [[true]];')
+        self.assertEqual(process("[bool] ziam := [zayn];"), 'ACK: [bool] ziam := [zayn];')
         
         #self.assertEqual(process("[num] error := [justin];"), 'ERROR: identificador justin no definido')
         
-        self.assertEqual(process("[num] arrayError := [?,3,4,5];"), 'ERROR: instrucción no válida.')
+        #self.assertEqual(process("[num] arrayError := [?,3,4,5];"), 'ERROR: caracter inválido ('?') en la entrada')
         
-        self.assertEqual(process("num timmy := 2+4*7*67;"), 'ACK: num timmy := 1878;')
+        self.assertEqual(process("num timmy := 2+4*7*67;"), 'ACK: num timmy := 2+4*7*67;')
         
-        self.assertEqual(process("[num] arregloError := [3**4,5,6];"), 'ERROR: instrucción no válida.')
+        self.assertEqual(process("[num] arregloError := [3**4,5,6];"), 'ERROR: syntax error TkMult(*)')
         
-        self.assertEqual(process("[num] arregloError2 := [3,5,6**2];"), 'ERROR: instrucción no válida.')
+        self.assertEqual(process("[num] arregloError2 := [3,5,6**2];"), 'ERROR: syntax error TkMult(*)')
         
-        self.assertEqual(process("[num] arregloError3 := [3,5,45;6];"), 'ERROR: instrucción no válida.')
+        self.assertEqual(process("[num] arregloError3 := [3,5,45;6];"), 'ERROR: syntax error TkSemicolon(;)')
         
         self.assertEqual(process("floor(453453.2423)"), 'OK: floor(453453.2423) ==> 453453')
         
@@ -263,7 +261,7 @@ class VMTest(TestCase):
         
         self.assertEqual(process("type(timmy)"), 'OK: type(timmy) ==> num')
         
-        self.assertEqual(process("[num] darry := [2,3,4];"), 'ACK: [num] darry := [2, 3, 4];')
+        self.assertEqual(process("[num] darry := [2,3,4];"), 'ACK: [num] darry := [2,3,4];')
         
         self.assertEqual(process("type(darry)"), 'OK: type(darry) ==> [num]')
         
@@ -271,15 +269,15 @@ class VMTest(TestCase):
         
         #self.assertEqual(process("type(ziam[0])"), 'OK: type(ziam[0]) ==> [bool]')
         
-        self.assertEqual(process("num hola := 8<8;"), 'ERROR: tipo de dato de la expresión (8 < 8) no coincide con el tipo de dato de num')
+        self.assertEqual(process("num hola := 8<8;"), 'ERROR: tipo de dato de la expresión (8 < 8) no coincide con el tipo de dato num')
         
         self.assertEqual(process("ltype(darry)"), 'OK: ltype(darry) ==> [num]')
         
-        #self.assertEqual(process("ltype(true)"), 'ERROR: la expresion 'true' no tiene LVALUE')
+        self.assertEqual(process("ltype(true)"), 'ERROR: la expresion true no tiene LVALUE')
                          
         self.assertEqual(process("num numero := 4;"), 'ACK: num numero := 4;')                 
         
-        #self.assertEqual(process("ltype(numero-3)"), 'ERROR: la expresion '(numero - 3)' no tiene LVALUE')
+        self.assertEqual(process("ltype(numero-3)"), 'ERROR: la expresion (numero - 3) no tiene LVALUE')
         
         self.assertEqual(process("length(darry)"), 'OK: length(darry) ==> 3')
         
@@ -303,10 +301,98 @@ class VMTest(TestCase):
         
         self.assertEqual(process("tan(45)"), 'OK: tan(45) ==> 1.6197751905438615')
         
-        self.assertEqual(process("num guacala := (pi()*6)+ln(34)-(sin(3)*4);"), 'ACK: num guacala := 21.81143641391545;')
+        self.assertEqual(process("num guacala := (pi()*6)+ln(34)-(sin(3)*4);"), 'ACK: num guacala := (pi()*6)+ln(34)-(sin(3)*4);')
         
-        self.assertEqual(process("[bool] bulian := [true,false,false];"), 'ACK: [bool] bulian := [true, false, false];')
+        self.assertEqual(process("[bool] bulian := [true,false,false];"), 'ACK: [bool] bulian := [true,false,false];')
         
         self.assertEqual(process("type(bulian[0])"), 'OK: type(bulian[0]) ==> bool')
         
         self.assertEqual(process("type(bulian)"), 'OK: type(bulian) ==> [bool]')
+        
+        self.assertEqual(process("num yanose := -34;"), 'ACK: num yanose := -34;')
+        
+        self.assertEqual(process("type(yanose)"), 'OK: type(yanose) ==> num')
+        
+        self.assertEqual(process("num bua := 3454*12;"), 'ACK: num bua := 3454*12;')
+        
+        self.assertEqual(process("num bue := 433^2;"), 'ACK: num bue := 433^2;')
+        
+        self.assertEqual(process("bool bui := 34343 < 1000000;"), 'ACK: bool bui := 34343 < 1000000;')
+        
+        self.assertEqual(process("type(bua)"), 'OK: type(bua) ==> num')
+        
+        self.assertEqual(process("type(bue)"), 'OK: type(bue) ==> num')
+        
+        self.assertEqual(process("type(bui)"), 'OK: type(bui) ==> bool')
+        
+        self.assertEqual(process("num aaaaaaaa := (pi()*23)-floor(1212.343);"), 'ACK: num aaaaaaaa := (pi()*23)-floor(1212.343);')
+        
+        self.assertEqual(process("type(aaaaaaaa)"), 'OK: type(aaaaaaaa) ==> num')
+        
+        self.assertEqual(process("type(for)"), 'ERROR: identificador for no definido')
+        
+        self.assertEqual(process("ltype(true)"), 'ERROR: la expresion true no tiene LVALUE')
+        
+        self.assertEqual(process("floor(adasd)"), 'ERROR: la expresion adasd no es de tipo num')
+        
+        self.assertEqual(process("sum(bulian)"), 'ERROR: el arreglo bulian no es de tipo [num]')
+        
+        self.assertEqual(process("sum(arrrrrr)"), 'ERROR: identificador arrrrrr no definido')
+        
+        self.assertEqual(process("length(bue)"), 'ERROR: identificador bue no es un arreglo')
+        
+        self.assertEqual(process("length(sasdlskfdmksdf)"), 'ERROR: identificador sasdlskfdmksdf no esta definido')
+        
+        self.assertEqual(process("type(caaaa[0])"), 'ERROR: identificador caaaa no definido')
+        
+        self.assertEqual(process("type((5+4)*2)"), 'OK: type((5+4)*2) ==> num')
+        
+        self.assertEqual(process("type(!false)"), 'OK: type(!false) ==> bool')
+        
+        self.assertEqual(process("type(-2432423)"), 'OK: type(-2432423) ==> num')
+        
+        self.assertEqual(process("type(-qlq)"), 'ERROR: operacion unaria no definida o inconsistencia de tipos')
+        
+        self.assertEqual(process("type(uniform())"), 'OK: type(uniform()) ==> num')
+        
+        self.assertEqual(process("type(for())"), 'ERROR: funcion for() no posse un tipo o no se puede obtener sin evaluar la funcion')
+        
+        self.assertEqual(process("[num] nosep := [234,43,1,3];"), 'ACK: [num] nosep := [234,43,1,3];')
+        
+        self.assertEqual(process("type(nosep)"), 'OK: type(nosep) ==> [num]')
+        
+        self.assertEqual(process("type(nosep[3])"), 'OK: type(nosep[3]) ==> num')
+        
+        self.assertEqual(process("avg(3434)"), 'ERROR: la expresion 3434 no es de tipo [num]')
+        
+        self.assertEqual(process("ln(-32432)"), 'ERROR: -32432 no pertenece al dominio de la funcion ln')
+        
+        self.assertEqual(process("ln(sfdsd)"), 'ERROR: la expresion sfdsd no es de tipo num')
+        
+        self.assertEqual(process("exp(w)"), 'ERROR: la expresion w no es de tipo num')
+        
+        self.assertEqual(process("sin(qw)"), 'ERROR: la expresion qw no es de tipo num')
+        
+        self.assertEqual(process("cos(yaaa)"), 'ERROR: la expresion yaaa no es de tipo num')
+        
+        self.assertEqual(process("tan(sfedf)"), 'ERROR: la expresion sfedf no es de tipo num')
+        
+        self.assertEqual(process("formula(5+2)"), 'ERROR: la expresion (5 + 2) no tiene LVALUE')
+        
+        self.assertEqual(process("formula(nosep)"), 'OK: formula(nosep) ==> [234, 43, 1, 3]')
+        
+        self.assertEqual(process("num nosemeocurre := 2203*232;"), 'ACK: num nosemeocurre := 2203*232;')
+        
+        self.assertEqual(process("formula(nosemeocurre)"), 'OK: formula(nosemeocurre) ==> 511096')
+        
+        self.assertEqual(process("formula(nosep[0])"), 'OK: formula(nosep[0]) ==> 234')
+        
+        self.assertEqual(process("formula(nosep[7])"), 'ERROR: indice fuera de rango')
+        
+        self.assertEqual(process("formula(Hiddleston)"), 'ERROR: identificador Hiddleston no definido')
+        
+        self.assertEqual(process("formula(pi())"), 'ERROR: la expresion pi() no tiene LVALUE')
+        
+        self.assertEqual(process("type(true&&false)"), 'OK: type(true&&false) ==> bool')
+        
+        self.assertEqual(process("type(45<2323)"), 'OK: type(45<2323) ==> bool')

@@ -1,0 +1,9 @@
+[num] a := [ 'uniform()', 'uniform()', 'uniform()', 'uniform()' ];
+a
+a
+a
+tick()
+a
+a
+tick()
+a

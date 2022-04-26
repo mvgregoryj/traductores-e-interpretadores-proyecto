@@ -365,7 +365,7 @@ def ejecutamosParseador():
         if p == None:
             token = 'Unexpected end of input'
         else:
-            token = f"{p.type}({p.value}) at line {p.lineno}"
+            token = f"{p.type}({p.value})"
             
         arr.append(token)               
                         
@@ -978,7 +978,7 @@ def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> BasicType or str:
         elif argumento.op in "-+" and isinstance(argumento.right, Number):
             return BasicType(argumento.right.type)
         else:
-            return f"ERROR: operacion binaria no definida o inconsistencia de tipos"
+            return f"ERROR: operacion unaria no definida o inconsistencia de tipos"
 
     elif isinstance(argumento, BinOp):
 

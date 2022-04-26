@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=emulateIE7" />
-    <title>Coverage for ply/lex.py: 53%</title>
+    <title>Coverage for ply\lex.py: 53%</title>
     <link rel="icon" sizes="32x32" href="favicon_32.png">
     <link rel="stylesheet" href="style.css" type="text/css">
     <script type="text/javascript" src="coverage_html.js" defer></script>
@@ -12,7 +12,7 @@
 <header>
     <div class="content">
         <h1>
-            <span class="text">Coverage for </span><b>ply/lex.py</b>:
+            <span class="text">Coverage for </span><b>ply\lex.py</b>:
             <span class="pc_cov">53%</span>
         </h1>
         <div id="help_panel_wrapper">
@@ -43,9 +43,9 @@
             </div>
         </div>
         <h2>
-            <span class="text">691 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">368<span class="text"> run</span></button>
-            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">323<span class="text"> missing</span></button>
+            <span class="text">692 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">366<span class="text"> run</span></button>
+            <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">326<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
         <div style="display: none;">
@@ -410,9 +410,9 @@
     <p class="pln"><span class="n"><a id="t351" href="#t351">351</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t352" href="#t352">352</a></span><span class="t">                <span class="com"># Every function must return a token, if nothing, we just move to next token</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t353" href="#t353">353</a></span><span class="t">                <span class="key">if</span> <span class="key">not</span> <span class="nam">newtok</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t354" href="#t354">354</a></span><span class="t">                    <span class="nam">lexpos</span>    <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">lexpos</span>         <span class="com"># This is here in case user has updated lexpos.</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t355" href="#t355">355</a></span><span class="t">                    <span class="nam">lexignore</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">lexignore</span>      <span class="com"># This is here in case there was a state change</span>&nbsp;</span><span class="r"></span></p>
-    <p class="mis show_mis"><span class="n"><a id="t356" href="#t356">356</a></span><span class="t">                    <span class="key">break</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t354" href="#t354">354</a></span><span class="t">                    <span class="nam">lexpos</span>    <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">lexpos</span>         <span class="com"># This is here in case user has updated lexpos.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t355" href="#t355">355</a></span><span class="t">                    <span class="nam">lexignore</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">lexignore</span>      <span class="com"># This is here in case there was a state change</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t356" href="#t356">356</a></span><span class="t">                    <span class="key">break</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t357" href="#t357">357</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t358" href="#t358">358</a></span><span class="t">                <span class="com"># Verify type of the token.  If not in the token map, raise an error</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t359" href="#t359">359</a></span><span class="t">                <span class="key">if</span> <span class="key">not</span> <span class="nam">self</span><span class="op">.</span><span class="nam">lexoptimize</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
@@ -472,13 +472,13 @@
     <p class="pln"><span class="n"><a id="t413" href="#t413">413</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t414" href="#t414">414</a></span><span class="t">    <span class="com"># Iterator interface</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t415" href="#t415">415</a></span><span class="t">    <span class="key">def</span> <span class="nam">__iter__</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t416" href="#t416">416</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t416" href="#t416">416</a></span><span class="t">        <span class="key">return</span> <span class="nam">self</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t417" href="#t417">417</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t418" href="#t418">418</a></span><span class="t">    <span class="key">def</span> <span class="nam">next</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t419" href="#t419">419</a></span><span class="t">        <span class="nam">t</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">token</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t420" href="#t420">420</a></span><span class="t">        <span class="key">if</span> <span class="nam">t</span> <span class="key">is</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t421" href="#t421">421</a></span><span class="t">            <span class="key">raise</span> <span class="nam">StopIteration</span>&nbsp;</span><span class="r"></span></p>
-    <p class="run"><span class="n"><a id="t422" href="#t422">422</a></span><span class="t">        <span class="key">return</span> <span class="nam">t</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t419" href="#t419">419</a></span><span class="t">        <span class="nam">t</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">token</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t420" href="#t420">420</a></span><span class="t">        <span class="key">if</span> <span class="nam">t</span> <span class="key">is</span> <span class="key">None</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t421" href="#t421">421</a></span><span class="t">            <span class="key">raise</span> <span class="nam">StopIteration</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t422" href="#t422">422</a></span><span class="t">        <span class="key">return</span> <span class="nam">t</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t423" href="#t423">423</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t424" href="#t424">424</a></span><span class="t">    <span class="nam">__next__</span> <span class="op">=</span> <span class="nam">next</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t425" href="#t425">425</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
@@ -1131,7 +1131,7 @@
     <p class="pln"><span class="n"><a id="t1072" href="#t1072">1072</a></span><span class="t">    <span class="key">else</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t1073" href="#t1073">1073</a></span><span class="t">        <span class="nam">_token</span> <span class="op">=</span> <span class="nam">token</span>&nbsp;</span><span class="r"></span></p>
     <p class="pln"><span class="n"><a id="t1074" href="#t1074">1074</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p class="pln"><span class="n"><a id="t1075" href="#t1075">1075</a></span><span class="t">    <span class="key">while</span> <span class="key">True</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="mis show_mis"><span class="n"><a id="t1075" href="#t1075">1075</a></span><span class="t">    <span class="key">while</span> <span class="key">True</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t1076" href="#t1076">1076</a></span><span class="t">        <span class="nam">tok</span> <span class="op">=</span> <span class="nam">_token</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t1077" href="#t1077">1077</a></span><span class="t">        <span class="key">if</span> <span class="key">not</span> <span class="nam">tok</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
     <p class="mis show_mis"><span class="n"><a id="t1078" href="#t1078">1078</a></span><span class="t">            <span class="key">break</span>&nbsp;</span><span class="r"></span></p>
@@ -1159,8 +1159,8 @@
 <footer>
     <div class="content">
         <p>
-            <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.1.1</a>,
-            created at 2022-04-20 16:51 -0400
+            <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v6.3.2</a>,
+            created at 2022-04-22 22:43 -0400
         </p>
     </div>
 </footer>
