@@ -307,7 +307,7 @@ def ejecutamosParseador():
                 p[0] = Grouped("Brace", p[1], p[2], p[3])
             elif (p[1]=="'" and p[3]=="'"):
                 p[0] = Grouped("SingleQuote", p[1], p[2], p[3])
-            elif (p[1]=='[' and p[3]==']'):
+            elif (p[1]=='[' and p[3]==']') and p[2]!="":
                 p[0] = Grouped("Bracket", p[1], p[2], p[3])
             else:
                 p[0] = BinOp(p[1], p[2], p[3])
@@ -433,8 +433,9 @@ def procesarDefinicion(data: str, instruccion: Definition, ts: TablaDeSimbolos) 
         resultado = funcionEval(data, instruccion.expression, ts)
         tipoResultado = procesarType(data, resultado, ts)
 
-        # # print(tipoResultado)
-        # # print(instruccion.type)
+        # print("holaaaa")
+        # print(tipoResultado)
+        # print(instruccion.type)
 
         if tipoResultado.type == instruccion.type.type:
             # Si resultado es un ERROR no se agrega a la tabla de simbolos.
@@ -1114,7 +1115,7 @@ def procesarLength(data: str, argumento: Identifier or ArrayExpression, ts: Tabl
         return f"ERROR: identificador {argumento} no es un arreglo"
 
 # Funcion procesarSum retorna la suma de un arreglo de números
-def procesarSum(data: str, argumento: Grouped or Identifier, ts: TablaDeSimbolos) -> int or str:
+def procesarSum(data: str, argumento: Grouped or Identifier, ts: TablaDeSimbolos) -> Number or str:
 
     ############### EXPLOTA CUANDO SE HACE sum([1,2,3,4,5,6]) 
     ############### SIRVE CUANDO SE HACE sum(arregloDenumerosQueYaExiste)
@@ -1186,6 +1187,7 @@ def procesarSum(data: str, argumento: Grouped or Identifier, ts: TablaDeSimbolos
         except:
             return "ERROR: Lista {argumento} está vacía"
     else:
+        #print(type(argumento))
         return f"ERROR: {argumento} no es un arreglo."
 
     # Comprobamos si tipo es de tipo "num"
@@ -1274,6 +1276,8 @@ def procesarCos(data, argumento, ts):
     # Comprobamos si tipo es de tipo "num"
     if isinstance(tipo, BasicType) and tipo.type == "num":
         respuesta = funcionEval(data, argumento, ts)
+        # print(respuesta)
+        # print(type(respuesta))
         return Number(math.cos(respuesta.value))
     else:
         return f"ERROR: la expresion {argumento} no es de tipo num"
@@ -1355,12 +1359,12 @@ def procesarHistogram(data: str, argumentos: BinOp, ts: TablaDeSimbolos) -> list
         flag = True
         for i in arregloTemp:
             tipo = procesarType(data, i, ts)
-            print(type(i))            
+            # print(type(i))            
             flag = flag and (f"{tipo}" == "num")
 
         # Entra si exp, nSamples, nBuckets, lowerBound y upperBound son de tipo num
         if flag:
-            # print("Todos los argumentos son de tipo num")
+            # # print("Todos los argumentos son de tipo num")
             exp = arregloTemp[0]
             nSamples = procesarFloor(data, arregloTemp[1], ts)
             nBuckets = procesarFloor(data, arregloTemp[2], ts)
@@ -1382,24 +1386,24 @@ def procesarHistogram(data: str, argumentos: BinOp, ts: TablaDeSimbolos) -> list
             # Se crea el arregloDeBarras (Inicialmente todas las casillas en 0) 
             arregloDeBarras = [0]*(nBuckets.value + 2)
 
-            print(f"\narregloDeBarras = {arregloDeBarras}")
+            # print(f"\narregloDeBarras = {arregloDeBarras}")
 
             # Se crea una variable bin que se correspondera en dividir el intervalo [lowerBound – upperBound) en los nBuckets.
-            bin = (upperBound.value - lowerBound.value)/nBuckets.value
+            bin = math.sqrt((upperBound.value - lowerBound.value)**2)/nBuckets.value
 
-            print(f"bin = {bin}")
+            # print(f"bin = {bin}")
 
             # Arreglo que tendra los bins para luego comparar respuestaExp con cada elemento y si corresponde a la casilla para luego aumentar la casilla correspondiente en arregloDeBarras.
             # Cada arregloDeBins[i] es igual a un valor (i+1)*bin y respuestaExp corresponderá a dicha casilla si respuestaExp < i*bin.
             # Cada correspondencia aumentará arregloDeBarras[i+1] en uno su valor
-            arregloDeBins = [(i+1)*bin for i in range(0, nBuckets.value)]
+            arregloDeBins = [(lowerBound.value + bin*i) for i in range(1, nBuckets.value + 1)]
 
-            print(f"arregloDeBins = {arregloDeBins}")
+            # print(f"arregloDeBins = {arregloDeBins}")
 
 
             for i in range(nSamples.value):
                 respuestaExp = funcionEval(data, exp, ts)
-                print(f"respuestaExp = {respuestaExp}")
+                # print(f"respuestaExp = {respuestaExp}")
 
                 # Toda evaluación de respuestaExp que resulte en un error debe ser ignorada
                 if f"{respuestaExp}".startswith("ERROR") or (not(isinstance(respuestaExp, Number))):
@@ -1431,8 +1435,13 @@ def procesarHistogram(data: str, argumentos: BinOp, ts: TablaDeSimbolos) -> list
                 procesarTick()
 
                 
-                print(f"arregloDeBins = {arregloDeBins}")
-                print(f"arregloDeBarras = {arregloDeBarras}\n")
+                # print(f"arregloDeBins = {arregloDeBins}")
+                # print(f"arregloDeBarras = {arregloDeBarras}\n")
+
+            # Convertimos la lista de int a Numbers
+            arregloDeBarras = [Number(i) for i in arregloDeBarras]
+            # print(f"bin = {bin}")
+            # print(f"arregloDeBins = {arregloDeBins}")
 
             return arregloDeBarras
 
@@ -1516,7 +1525,9 @@ def funcionEval(input: str, instruccion, ts: TablaDeSimbolos) -> str or Number o
     elif isinstance(instruccion, list):
         return procesarLista(input, instruccion, ts)
 
-    else: 
+    else:
+        # print("qlq")
+        # print(type(instruccion))
         return f"ERROR: instrucción no válida"
 
 # Process
@@ -1528,8 +1539,8 @@ def process(input: str) -> str:
 
     # Llamamos a parser con el input ingresado por el usuario
     instruccion, arrayErrores = parse(input)
-    # # print(input)
-    # # print(type(instruccion))
+    # print(input)
+    # print(type(instruccion))
     # # print(instruccion)
     # # print(type(instruccion.id))
     # # print(type(instruccion.index))
