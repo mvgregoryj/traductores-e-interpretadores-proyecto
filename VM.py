@@ -905,7 +905,7 @@ def procesarLista(data: str, instruccion: list, ts: TablaDeSimbolos) -> list:
 
 def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> str:
     nombreFuncion = instruccion.id.value
-    funcionesConArgs = ["if","type","ltype","floor","length","sum","avg","ln","exp","sin","cos","tan","formula", "histogram", "sqrt"]
+    funcionesConArgs = ["if","type","ltype","floor","length","sum","avg","ln","exp","sin","cos","tan","formula", "histogram", "sqrt", "array"]
     funcionesSinArgs = ["reset","uniform","pi","now","tick", "sys.tick()"]
 
     if nombreFuncion in funcionesConArgs:
@@ -941,6 +941,8 @@ def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> st
             return procesarHistogram(data, argumentos, ts)
         elif nombreFuncion == "sqrt":
             return procesarSqrt(data, argumentos, ts)
+        elif nombreFuncion == "array":
+            return procesarArray(data, argumentos, ts)
         else:
             return f"ERROR: {nombreFuncion} no definida"
 
@@ -1011,6 +1013,9 @@ def procesarType(data: str, argumento, ts: TablaDeSimbolos) -> BasicType or str:
         return BasicType(argumento.type)
 
     elif isinstance(argumento, Grouped) and (argumento.type == "Par"):
+        return procesarType(data, argumento.expression, ts)
+
+    elif isinstance(argumento, Grouped) and (argumento.type == "SingleQuote"):
         return procesarType(data, argumento.expression, ts)
 
     elif isinstance(argumento, list):
@@ -1520,6 +1525,49 @@ def procesarSqrt(data, argumento, ts):
             return Number(math.sqrt(respuesta.value))
     else:
         return f"ERROR: la expresion {argumento} no es de tipo num"
+
+
+def procesarArray(data: str, argumentos: BinOp, ts: TablaDeSimbolos) -> list:
+    arregloTemp = procesarArgsOrElemArray(data, argumentos, ts, [])
+
+    if isinstance(arregloTemp, str) and arregloTemp.startswith("ERROR"):
+        return arregloTemp
+
+    else:
+        # Verifiquemos los tipos de los arrgumentos, el 1er argumento debe ser num y el segundo num o bool:
+        try:
+            tipoPrimerArg = procesarType(data, arregloTemp[0], ts)
+            tipoSegundoArg = procesarType(data, arregloTemp[1], ts)
+        except:
+            return f"ERROR: faltan argumentos"
+        # print(type(i))            
+        if (f"{tipoPrimerArg}" != "num") or (not(f"{tipoSegundoArg}" in ["num","bool"])):
+            print(tipoPrimerArg)
+            print(tipoSegundoArg)
+            
+            return f"ERROR: inconsistencia de tipos al crear arreglos"
+        
+        else:
+            size = arregloTemp[0]
+            init = arregloTemp[1]
+
+            print(type(size))
+            print(type(init))
+
+            respuestaSize = funcionEval(data, size, ts)
+            # Si respuestaSize es un ERROR, se retorna el error.
+            if f"{respuestaSize}".startswith("ERROR"):
+                return respuestaSize           
+
+            if isinstance(respuestaSize, Number):
+                arregloRespuesta = [init]*respuestaSize.value
+                print(arregloRespuesta)
+                return arregloRespuesta
+            else:
+                return f"ERROR: {respuestaSize} no es Number"
+
+
+
 
 ####################################################
 

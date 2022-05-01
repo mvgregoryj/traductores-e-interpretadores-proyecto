@@ -79,7 +79,7 @@ class VMTest(TestCase):
         
         #self.assertEqual(process("num var := 5@5;"), 'ERROR: caracter inválido ('@') en la entrada')
         
-        #self.assertEqual(process("bool it := !g;"), 'ERROR: expresion g no es valida para operaciones unarias.')
+        self.assertEqual(process("bool it := 4;"), 'ERROR: tipo de dato de la expresión 4 no coincide con el tipo de dato bool')
         
         #self.assertEqual(process("num what:= (5*4)$2;"), 'ERROR: caracter inválido ('$') en la entrada')
         
@@ -95,7 +95,7 @@ class VMTest(TestCase):
         
         self.assertEqual(process("bool dani := 52<>43;"), 'ACK: bool dani := 52<>43;')
         
-        #self.assertEqual(process("num aaaa:= true = 5;"), 'ERROR: no hay coincidencia de tipo entre true y 5')
+        self.assertEqual(process("num aaaa:= true;"), 'ERROR: tipo de dato de la expresión true no coincide con el tipo de dato num')
         
         self.assertEqual(process("num bianchi := +56;"), 'ACK: num bianchi := +56;')
         
@@ -129,11 +129,11 @@ class VMTest(TestCase):
     
         #self.assertEqual(process("num z := 'x + y';"), 'ACK: num z := 'x + y';') 
           
-        #self.assertEqual(process("w := asals;"), 'ERROR: identificador w no definido')
+        self.assertEqual(process("w := asals;"), 'ERROR: identificador asals no definido')
         
-        #self.assertEqual(process("b := aswewe;"), 'ERROR: identificador b no definido')
+        self.assertEqual(process("b := aswewe;"), 'ERROR: identificador aswewe no definido')
         
-        #self.assertEqual(process("w+b"), 'ERROR: identificador w no definido\nERROR: identificador b no definido')
+        self.assertEqual(process("w+b"), 'ERROR: identificador w no definido\nERROR: identificador b no definido')
 
         self.assertEqual(process("c := 23;"), 'ERROR: identificador c no definido')
         
@@ -181,7 +181,7 @@ class VMTest(TestCase):
         
         self.assertEqual(process("array[5]"), 'ERROR: indice fuera de rango') 
         
-        #self.assertEqual(process("array[o]"), 'ERROR: o no es un numero')
+        self.assertEqual(process("array[o]"), 'ERROR: identificador o no definido')
         
         self.assertEqual(process("array[0] + array1[1]"), 'ERROR: variable array1 no definida') 
         
@@ -237,7 +237,7 @@ class VMTest(TestCase):
         
         self.assertEqual(process("[bool] ziam := [zayn];"), 'ACK: [bool] ziam := [zayn];')
         
-        #self.assertEqual(process("[num] error := [justin];"), 'ERROR: identificador justin no definido')
+        self.assertEqual(process("[num] error := [justin];"), 'ERROR: identificador justin no definido')
         
         #self.assertEqual(process("[num] arrayError := [?,3,4,5];"), 'ERROR: caracter inválido ('?') en la entrada')
         
@@ -267,11 +267,13 @@ class VMTest(TestCase):
         
         self.assertEqual(process("type(true)"), 'OK: type(true) ==> bool')
         
-        #self.assertEqual(process("type(ziam[0])"), 'OK: type(ziam[0]) ==> [bool]')
+        self.assertEqual(process("type(ziam[0])"), 'OK: type(ziam[0]) ==> bool')
         
         self.assertEqual(process("num hola := 8<8;"), 'ERROR: tipo de dato de la expresión (8 < 8) no coincide con el tipo de dato num')
         
         self.assertEqual(process("ltype(darry)"), 'OK: ltype(darry) ==> [num]')
+        
+        #self.assertEqual(process("ltype(darry[i+1])"), 'ERROR: identificador i no definido')
         
         self.assertEqual(process("ltype(true)"), 'ERROR: la expresion true no tiene LVALUE')
                          
@@ -325,6 +327,8 @@ class VMTest(TestCase):
         
         self.assertEqual(process("type(bui)"), 'OK: type(bui) ==> bool')
         
+        self.assertEqual(process("avg(bue)"), 'ERROR: la expresion bue no es de tipo [num]')
+        
         self.assertEqual(process("num aaaaaaaa := (pi()*23)-floor(1212.343);"), 'ACK: num aaaaaaaa := (pi()*23)-floor(1212.343);')
         
         self.assertEqual(process("type(aaaaaaaa)"), 'OK: type(aaaaaaaa) ==> num')
@@ -333,7 +337,7 @@ class VMTest(TestCase):
         
         self.assertEqual(process("ltype(true)"), 'ERROR: la expresion true no tiene LVALUE')
         
-        self.assertEqual(process("floor(adasd)"), 'ERROR: la expresion adasd no es de tipo num')
+        self.assertEqual(process("floor(adasd)"), 'ERROR: identificador adasd no definido')
         
         self.assertEqual(process("sum(bulian)"), 'ERROR: el arreglo bulian no es de tipo [num]')
         
@@ -341,7 +345,7 @@ class VMTest(TestCase):
         
         self.assertEqual(process("length(bue)"), 'ERROR: identificador bue no es un arreglo')
         
-        self.assertEqual(process("length(sasdlskfdmksdf)"), 'ERROR: identificador sasdlskfdmksdf no esta definido')
+        self.assertEqual(process("length(sasdlskfdmksdf)"), 'ERROR: identificador sasdlskfdmksdf no definido')
         
         self.assertEqual(process("type(caaaa[0])"), 'ERROR: identificador caaaa no definido')
         
@@ -363,19 +367,21 @@ class VMTest(TestCase):
         
         self.assertEqual(process("type(nosep[3])"), 'OK: type(nosep[3]) ==> num')
         
+        self.assertEqual(process("formula(nosep[t])"), 'ERROR: identificador t no definido')
+        
         self.assertEqual(process("avg(3434)"), 'ERROR: la expresion 3434 no es de tipo [num]')
         
         self.assertEqual(process("ln(-32432)"), 'ERROR: -32432 no pertenece al dominio de la funcion ln')
         
-        self.assertEqual(process("ln(sfdsd)"), 'ERROR: la expresion sfdsd no es de tipo num')
+        self.assertEqual(process("ln(sfdsd)"), 'ERROR: identificador sfdsd no definido')
         
-        self.assertEqual(process("exp(w)"), 'ERROR: la expresion w no es de tipo num')
+        self.assertEqual(process("exp(w)"), 'ERROR: identificador w no definido')
         
-        self.assertEqual(process("sin(qw)"), 'ERROR: la expresion qw no es de tipo num')
+        self.assertEqual(process("sin(qw)"), 'ERROR: identificador qw no definido')
         
-        self.assertEqual(process("cos(yaaa)"), 'ERROR: la expresion yaaa no es de tipo num')
+        self.assertEqual(process("cos(yaaa)"), 'ERROR: identificador yaaa no definido')
         
-        self.assertEqual(process("tan(sfedf)"), 'ERROR: la expresion sfedf no es de tipo num')
+        self.assertEqual(process("tan(sfedf)"), 'ERROR: identificador sfedf no definido')
         
         self.assertEqual(process("formula(5+2)"), 'ERROR: la expresion (5 + 2) no tiene LVALUE')
         
@@ -396,3 +402,11 @@ class VMTest(TestCase):
         self.assertEqual(process("type(true&&false)"), 'OK: type(true&&false) ==> bool')
         
         self.assertEqual(process("type(45<2323)"), 'OK: type(45<2323) ==> bool')
+        
+        self.assertEqual(process("num i := 2;"), 'ACK: num i := 2;')
+        
+        self.assertEqual(process("bool jeje := true;"), 'ACK: bool jeje := true;')
+        
+        self.assertEqual(process("num z := i+jeje;"), 'ERROR: no hay coincidencia de tipo entre 2 y true')
+        
+        self.assertEqual(process("[bool] bul:=[True,False];"), 'ERROR: identificador True no definido')
