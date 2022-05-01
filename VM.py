@@ -431,7 +431,15 @@ def procesarDefinicion(data: str, instruccion: Definition, ts: TablaDeSimbolos) 
         return f"ERROR: identificador {instruccion.id} ya está definido"
     else:
         resultado = funcionEval(data, instruccion.expression, ts)
+
+        # Si resultado es un ERROR, se retorna el error.
+        if f"{resultado}".startswith("ERROR"):
+            return resultado
+
         tipoResultado = procesarType(data, resultado, ts)
+        # Si tipoResultado es un ERROR, se retorna el error.
+        if f"{tipoResultado}".startswith("ERROR"):
+            return tipoResultado
 
         # print("holaaaa")
         # print(tipoResultado)
@@ -732,7 +740,7 @@ def procesarAgrupacion(data: str, instruccion: Grouped, ts: TablaDeSimbolos) -> 
 
             # Si procesarArgsOrElemArray retorna un ERROR, se retorna el error.
             if f"{arregloTemp}".startswith("ERROR"):
-                return respuesta
+                return arregloTemp
 
             
         return arregloTemp
@@ -824,6 +832,10 @@ def procesarArregloExpresion(data: str, instruccion: ArrayExpression, ts: TablaD
 
                 if isinstance(RVALUE, list):
                     indice = funcionEval(data, instruccion.index, ts)
+
+                    if f"{indice}".startswith("ERROR"):
+                        return indice
+
                     if isinstance(indice, Number):
                         try:
                             respuesta = RVALUE[indice.value]
@@ -891,7 +903,7 @@ def procesarLista(data: str, instruccion: list, ts: TablaDeSimbolos) -> list:
 def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> str:
     nombreFuncion = instruccion.id.value
     funcionesConArgs = ["if","type","ltype","floor","length","sum","avg","ln","exp","sin","cos","tan","formula", "histogram", "sqrt"]
-    funcionesSinArgs = ["reset","uniform","pi","now","tick"]
+    funcionesSinArgs = ["reset","uniform","pi","now","tick", "sys.tick()"]
 
     if nombreFuncion in funcionesConArgs:
         argumentos = instruccion.args
@@ -938,7 +950,7 @@ def procesarFuncion(data: str, instruccion: Function, ts: TablaDeSimbolos) -> st
             return procesarPi()
         elif nombreFuncion == "now":
             return procesarNow()
-        elif nombreFuncion == "tick":
+        elif (nombreFuncion == "tick") or (nombreFuncion == "sys.tick()"):
             return procesarTick()
         else:
             return f"ERROR: {nombreFuncion} no definida"
@@ -1076,6 +1088,8 @@ def procesarFloor(data: str, argumento, ts: TablaDeSimbolos) -> Number or str:
     # # print(argumento)
     # # print(type(argumento))
     tipo = procesarType(data, argumento, ts)
+    if f"{tipo}".startswith("ERROR"):
+        return tipo
     # # print(tipo)
     # # print(type(tipo))
     # Comprobamos si tipo es de tipo "num"
@@ -1103,7 +1117,7 @@ def procesarLength(data: str, argumento: Identifier or ArrayExpression, ts: Tabl
     # 2da Manera:
     respuesta = funcionEval(data, argumento, ts)
 
-    # Si respuestaes un error se retorna el error
+    # Si respuesta es un error se retorna el error
     if f"{respuesta}".startswith("ERROR"):
         return respuesta
     
@@ -1181,6 +1195,7 @@ def procesarSum(data: str, argumento: Grouped or Identifier, ts: TablaDeSimbolos
     ############################## otra manera ##########################:
     respuesta = funcionEval(data, argumento, ts)
 
+    # Si la respuesta da un error retorna el error
     if f"{respuesta}".startswith("ERROR"):
         return respuesta
 
@@ -1237,7 +1252,9 @@ def procesarNow():
 # La función procesarLn retorna el logaritmo natural del argumento. Si el logaritmo no existe arroja un error.
 def procesarLn(data, argumento, ts):
     tipo = procesarType(data, argumento, ts)
-    
+    if f"{tipo}".startswith("ERROR"):
+            return tipo    
+
     # Comprobamos si tipo es de tipo "num"
     if isinstance(tipo, BasicType) and tipo.type == "num":
         respuesta = funcionEval(data, argumento, ts)
@@ -1253,6 +1270,9 @@ def procesarLn(data, argumento, ts):
 # La función procesarExp retorna el exponencial del argumento x, es decir e^x .
 def procesarExp(data, argumento, ts):
     tipo = procesarType(data, argumento, ts)
+    if f"{tipo}".startswith("ERROR"):
+        return tipo    
+
     
     # Comprobamos si tipo es de tipo "num"
     if isinstance(tipo, BasicType) and tipo.type == "num":
@@ -1264,6 +1284,8 @@ def procesarExp(data, argumento, ts):
 # La función procesarSin retorna el seno del argumento, es decir sin x .
 def procesarSin(data, argumento, ts):
     tipo = procesarType(data, argumento, ts)
+    if f"{tipo}".startswith("ERROR"):
+        return tipo    
     
     # Comprobamos si tipo es de tipo "num"
     if isinstance(tipo, BasicType) and tipo.type == "num":
@@ -1276,7 +1298,9 @@ def procesarSin(data, argumento, ts):
 # La función procesarCos retorna el coseno del argumento, es decir cos x .
 def procesarCos(data, argumento, ts):
     tipo = procesarType(data, argumento, ts)
-    
+    if f"{tipo}".startswith("ERROR"):
+        return tipo    
+
     # Comprobamos si tipo es de tipo "num"
     if isinstance(tipo, BasicType) and tipo.type == "num":
         respuesta = funcionEval(data, argumento, ts)
@@ -1289,7 +1313,9 @@ def procesarCos(data, argumento, ts):
 # La función procesarTan retorna el coseno del argumento, es decir tan x .
 def procesarTan(data, argumento, ts):
     tipo = procesarType(data, argumento, ts)
-    
+    if f"{tipo}".startswith("ERROR"):
+        return tipo    
+
     # Comprobamos si tipo es de tipo "num"
     if isinstance(tipo, BasicType) and tipo.type == "num":
         respuesta = funcionEval(data, argumento, ts)
@@ -1320,6 +1346,11 @@ def procesarFormula(data: str, argumento: Identifier or ArrayExpression, ts: Tab
 
                 if isinstance(arreglo, list):
                     indice = funcionEval(data, argumento.index, ts)
+                    
+                    # Si indice es un error se retorna el error
+                    if f"{indice}".startswith("ERROR"):
+                        return indice
+
                     if isinstance(indice, Number):
                         try:
                             respuesta = arreglo[indice.value]

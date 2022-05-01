@@ -129,6 +129,7 @@ if __name__ == '__main__':
 
         elif data.startswith('.reset'):
             reset(arrayTuplas)
+            continue
 
         elif data.startswith('.ast'):
             mensajeVM = VM.testParser(data)
