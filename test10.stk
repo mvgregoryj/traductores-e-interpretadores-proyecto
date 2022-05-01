@@ -1,0 +1,18 @@
+num N := 4;
+
+[num] A := array(N, floor(6 * uniform()) + 1);
+formula(A)
+
+[num] B := array(N, 'floor(6 * uniform()) + 1');
+formula(B)
+
+[num] C := array(3, ' 'floor(6 * uniform()) + 1' ');
+formula(C)
+
+A
+B
+C
+tick()
+A
+B
+C

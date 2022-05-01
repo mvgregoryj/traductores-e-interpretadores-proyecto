@@ -1542,7 +1542,7 @@ def procesarArray(data: str, argumentos: BinOp, ts: TablaDeSimbolos) -> list:
             return f"ERROR: faltan argumentos"
         # print(type(i))            
         if (f"{tipoPrimerArg}" != "num") or (not(f"{tipoSegundoArg}" in ["num","bool"])):
-            print(tipoPrimerArg)
+            # print(tipoPrimerArg)
             print(tipoSegundoArg)
             
             return f"ERROR: inconsistencia de tipos al crear arreglos"
@@ -1551,17 +1551,21 @@ def procesarArray(data: str, argumentos: BinOp, ts: TablaDeSimbolos) -> list:
             size = arregloTemp[0]
             init = arregloTemp[1]
 
-            print(type(size))
-            print(type(init))
+            # print(type(size))
+            # print(type(init))
 
             respuestaSize = funcionEval(data, size, ts)
             # Si respuestaSize es un ERROR, se retorna el error.
             if f"{respuestaSize}".startswith("ERROR"):
-                return respuestaSize           
+                return respuestaSize         
 
             if isinstance(respuestaSize, Number):
-                arregloRespuesta = [init]*respuestaSize.value
-                print(arregloRespuesta)
+                arregloRespuesta = []
+                for i in range(respuestaSize.value):
+                    respuestaInit = funcionEval(data, init, ts)
+                    arregloRespuesta.append(respuestaInit)
+
+                # print(arregloRespuesta)
                 return arregloRespuesta
             else:
                 return f"ERROR: {respuestaSize} no es Number"
