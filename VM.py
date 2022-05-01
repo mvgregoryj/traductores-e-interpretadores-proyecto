@@ -1181,6 +1181,10 @@ def procesarSum(data: str, argumento: Grouped or Identifier, ts: TablaDeSimbolos
     ############################## otra manera ##########################:
     respuesta = funcionEval(data, argumento, ts)
 
+    if f"{respuesta}".startswith("ERROR"):
+        return respuesta
+
+
     if isinstance(respuesta, list):
         try:
             tipo = procesarType(data, respuesta[0], ts)
