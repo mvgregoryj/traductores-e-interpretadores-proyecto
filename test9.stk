@@ -17,21 +17,21 @@ x := 13;
 z
 formula(z)
 5 * x + y
-num e := ‘floor(10^6 * uniform()) % 6’;
-num f := ‘2 * e’;
-num g := ‘e + f’;
+num e := 'floor(10^6 * uniform()) % 6';
+num f := '2 * e';
+num g := 'e + f';
 e
 tick()
 f
 g
 num h := 42;
-num i := ‘h + 25’;
+num i := 'h + 25';
 i
-h := ‘i – 5’;
+h := 'i – 5';
 i
-[num] j := [ 42, ‘j[0] + 25’ ];
+#[num] j := [ 42, 'j[0] + 25' ];
 j
-j[0] := ‘j[1] – 5’; 
+#j[0] := 'j[1] - 5'; 
 formula(j)
 j[1]
 5*

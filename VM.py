@@ -850,6 +850,9 @@ def procesarArregloExpresion(data: str, instruccion: ArrayExpression, ts: TablaD
             else:
                 if isinstance(RVALUE, list):
                     indice = funcionEval(data, instruccion.index, ts)
+                    if f"{indice}".startswith("ERROR"):
+                        return indice
+
                     if isinstance(indice, Number):
                         try:
                             respuesta = RVALUE[indice.value]
@@ -1054,6 +1057,11 @@ def procesarLtype(data: str, argumento, ts: TablaDeSimbolos) -> str:
             return f"ERROR: identificador {argumento} no definido"
 
     elif isinstance(argumento, ArrayExpression):
+
+        resultadoExp = funcionEval(data, argumento, ts)
+        # Si resultadoExp es un ERROR, se retorna el error.
+        if f"{resultadoExp}".startswith("ERROR"):
+            return resultadoExp
 
         if ts.existe_simbolo_en_ts(argumento.id):
             simbolo = ts.obtener_simbolo(argumento.id)

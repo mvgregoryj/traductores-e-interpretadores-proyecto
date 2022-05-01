@@ -2,10 +2,10 @@ num u1 := 'uniform()';
 num u2 := 'uniform()';
 num x := 'sqrt(-2 * ln(u1)) * cos(2 * pi() * u2)';
 num y := 'sqrt(-2 * ln(u1)) * sin(2 * pi() * u2)';
-[num] hx := histogram(‘x’, 1000, 30, -3.0, 3.0);
-[num] hy := histogram(‘y’, 1000, 30, -3.0, 3.0);
+[num] hx := histogram('x', 1000, 30, -3.0, 3.0);
+[num] hy := histogram('y', 1000, 30, -3.0, 3.0);
 
 num N := 1000;
-[num] a := ['2 * uniform() – 1', '2 * uniform() – 1', '2 * uniform() – 1, 2 * uniform() – 1];
-num promedio := avg(a);
+[num] a := ['2 * uniform() - 1', '2 * uniform() - 1', '2 * uniform() - 1', '2 * uniform() - 1'];
+num promedio := 'avg(a)';
 [num] resultado := histogram('promedio', N, 40, -1, 1);
